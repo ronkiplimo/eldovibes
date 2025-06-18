@@ -9,7 +9,203 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          booking_date: string
+          client_id: string | null
+          created_at: string | null
+          duration_hours: number
+          escort_id: string | null
+          id: string
+          service_type: string
+          special_requests: string | null
+          status: Database["public"]["Enums"]["booking_status"] | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          booking_date: string
+          client_id?: string | null
+          created_at?: string | null
+          duration_hours: number
+          escort_id?: string | null
+          id?: string
+          service_type: string
+          special_requests?: string | null
+          status?: Database["public"]["Enums"]["booking_status"] | null
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          booking_date?: string
+          client_id?: string | null
+          created_at?: string | null
+          duration_hours?: number
+          escort_id?: string | null
+          id?: string
+          service_type?: string
+          special_requests?: string | null
+          status?: Database["public"]["Enums"]["booking_status"] | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      escort_profiles: {
+        Row: {
+          age: number | null
+          availability_status:
+            | Database["public"]["Enums"]["availability_status"]
+            | null
+          bio: string | null
+          category: string | null
+          created_at: string | null
+          hourly_rate: number | null
+          id: string
+          location: string | null
+          rating: number | null
+          services_offered: string[] | null
+          stage_name: string
+          total_reviews: number | null
+          updated_at: string | null
+          user_id: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          age?: number | null
+          availability_status?:
+            | Database["public"]["Enums"]["availability_status"]
+            | null
+          bio?: string | null
+          category?: string | null
+          created_at?: string | null
+          hourly_rate?: number | null
+          id?: string
+          location?: string | null
+          rating?: number | null
+          services_offered?: string[] | null
+          stage_name: string
+          total_reviews?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          age?: number | null
+          availability_status?:
+            | Database["public"]["Enums"]["availability_status"]
+            | null
+          bio?: string | null
+          category?: string | null
+          created_at?: string | null
+          hourly_rate?: number | null
+          id?: string
+          location?: string | null
+          rating?: number | null
+          services_offered?: string[] | null
+          stage_name?: string
+          total_reviews?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          receiver_id: string | null
+          sender_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          receiver_id?: string | null
+          sender_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          receiver_id?: string | null
+          sender_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          full_name: string | null
+          id: string
+          location: string | null
+          phone: string | null
+          updated_at: string | null
+          user_role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          location?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          user_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          location?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          user_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          booking_id: string | null
+          client_id: string | null
+          comment: string | null
+          created_at: string | null
+          escort_id: string | null
+          id: string
+          rating: number | null
+        }
+        Insert: {
+          booking_id?: string | null
+          client_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          escort_id?: string | null
+          id?: string
+          rating?: number | null
+        }
+        Update: {
+          booking_id?: string | null
+          client_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          escort_id?: string | null
+          id?: string
+          rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +214,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      availability_status: "available" | "busy" | "offline"
+      booking_status: "pending" | "confirmed" | "completed" | "cancelled"
+      user_role: "client" | "escort" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +331,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      availability_status: ["available", "busy", "offline"],
+      booking_status: ["pending", "confirmed", "completed", "cancelled"],
+      user_role: ["client", "escort", "admin"],
+    },
   },
 } as const
