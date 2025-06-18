@@ -6,38 +6,55 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Star, Users, Shield, Heart } from 'lucide-react';
+import { Search, MapPin, Star, Users, Shield, Heart, Filter } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import EscortCard from '@/components/EscortCard';
+import AdvancedSearch from '@/components/AdvancedSearch';
 import { useEscorts, useSearchEscorts } from '@/hooks/useEscorts';
+import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
   const [searchLocation, setSearchLocation] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState(null);
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const { data: allEscorts, isLoading: loadingAll } = useEscorts();
   const { data: searchResults, isLoading: loadingSearch } = useSearchEscorts(
-    isSearching ? searchLocation : undefined,
-    isSearching ? selectedCategory : undefined
+    isSearching && !advancedFilters ? searchLocation : undefined,
+    isSearching && !advancedFilters ? selectedCategory : undefined
+  );
+  const { data: advancedResults, isLoading: loadingAdvanced } = useAdvancedSearch(
+    advancedFilters || {},
+    !!advancedFilters
   );
 
-  const escorts = isSearching ? searchResults : allEscorts;
+  const escorts = advancedFilters ? advancedResults : (isSearching ? searchResults : allEscorts);
+  const isLoading = advancedFilters ? loadingAdvanced : (isSearching ? loadingSearch : loadingAll);
 
   const handleSearch = () => {
+    setIsSearching(true);
+    setAdvancedFilters(null);
+  };
+
+  const handleAdvancedSearch = (filters: any) => {
+    setAdvancedFilters(filters);
     setIsSearching(true);
   };
 
   const handleViewProfile = (id: string) => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-    // Navigate to profile page (to be implemented)
-    console.log('View profile:', id);
+    navigate(`/escort/${id}`);
+  };
+
+  const clearFilters = () => {
+    setSearchLocation('');
+    setSelectedCategory('');
+    setIsSearching(false);
+    setAdvancedFilters(null);
   };
 
   const categories = [
@@ -88,14 +105,23 @@ const Index = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button 
-                  onClick={handleSearch}
-                  className="bg-white text-purple-600 hover:bg-gray-100"
-                  disabled={loadingSearch}
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  Search
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleSearch}
+                    className="bg-white text-purple-600 hover:bg-gray-100"
+                    disabled={isLoading}
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    Search
+                  </Button>
+                  <Button
+                    onClick={() => setShowAdvancedSearch(true)}
+                    variant="outline"
+                    className="border-white/30 text-white hover:bg-white/10"
+                  >
+                    <Filter className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -155,18 +181,24 @@ const Index = () => {
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               {isSearching ? 'Search Results' : 'Featured Companions'}
             </h2>
-            {isSearching && (
-              <Button 
-                variant="outline" 
-                onClick={() => setIsSearching(false)}
-                className="mb-4"
-              >
-                View All Companions
-              </Button>
+            {(isSearching || advancedFilters) && (
+              <div className="flex justify-center gap-4 mb-4">
+                <Button 
+                  variant="outline" 
+                  onClick={clearFilters}
+                >
+                  Clear Filters
+                </Button>
+                {advancedFilters && (
+                  <Badge variant="secondary" className="text-sm">
+                    Advanced filters applied
+                  </Badge>
+                )}
+              </div>
             )}
           </div>
           
-          {(loadingAll || loadingSearch) ? (
+          {isLoading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <Card key={i} className="animate-pulse">
@@ -213,6 +245,14 @@ const Index = () => {
           )}
         </div>
       </section>
+
+      {/* Advanced Search Modal */}
+      {showAdvancedSearch && (
+        <AdvancedSearch
+          onSearch={handleAdvancedSearch}
+          onClose={() => setShowAdvancedSearch(false)}
+        />
+      )}
     </div>
   );
 };
