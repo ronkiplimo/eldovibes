@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -57,7 +56,12 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
   };
 
   const handleSearch = () => {
-    onSearch(filters);
+    const processedFilters = {
+      ...filters,
+      location: filters.location === 'all' ? '' : filters.location,
+      category: filters.category === 'all' ? '' : filters.category
+    };
+    onSearch(processedFilters);
     onClose();
   };
 
@@ -97,7 +101,7 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
                 <SelectValue placeholder="Select location" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Locations</SelectItem>
+                <SelectItem value="all">All Locations</SelectItem>
                 {eldoretLocations.map((location) => (
                   <SelectItem key={location} value={location}>
                     {location}
@@ -115,7 +119,7 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}

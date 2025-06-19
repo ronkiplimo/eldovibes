@@ -25,8 +25,8 @@ const Index = () => {
 
   const { data: allEscorts, isLoading: loadingAll } = useEscorts();
   const { data: searchResults, isLoading: loadingSearch } = useSearchEscorts(
-    isSearching && !advancedFilters ? searchLocation : undefined,
-    isSearching && !advancedFilters ? selectedCategory : undefined
+    isSearching && !advancedFilters ? (searchLocation === 'all' ? '' : searchLocation) : undefined,
+    isSearching && !advancedFilters ? (selectedCategory === 'all' ? '' : selectedCategory) : undefined
   );
   const { data: advancedResults, isLoading: loadingAdvanced } = useAdvancedSearch(
     advancedFilters || {},
@@ -89,7 +89,7 @@ const Index = () => {
                       <SelectValue placeholder="Select location" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Locations</SelectItem>
+                      <SelectItem value="all">All Locations</SelectItem>
                       {eldoretLocations.map((location) => (
                         <SelectItem key={location} value={location}>
                           {location}
@@ -104,6 +104,7 @@ const Index = () => {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
                       {categories.map((category) => (
                         <SelectItem key={category} value={category}>
                           {category}
