@@ -14,6 +14,16 @@ interface ReviewsSectionProps {
   escortId: string;
 }
 
+interface ReviewWithProfile {
+  id: string;
+  client_id: string;
+  escort_id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  client_name?: string;
+}
+
 const ReviewsSection = ({ escortId }: ReviewsSectionProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -24,17 +34,32 @@ const ReviewsSection = ({ escortId }: ReviewsSectionProps) => {
   const { data: reviews = [] } = useQuery({
     queryKey: ['reviews', escortId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get reviews
+      const { data: reviewsData, error: reviewsError } = await supabase
         .from('reviews')
-        .select(`
-          *,
-          profiles!reviews_client_id_fkey(full_name)
-        `)
+        .select('*')
         .eq('escort_id', escortId)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (reviewsError) throw reviewsError;
+
+      // Then get client profiles for each review
+      const reviewsWithProfiles: ReviewWithProfile[] = [];
+      
+      for (const review of reviewsData) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', review.client_id)
+          .single();
+        
+        reviewsWithProfiles.push({
+          ...review,
+          client_name: profileData?.full_name || 'Anonymous'
+        });
+      }
+      
+      return reviewsWithProfiles;
     }
   });
 
@@ -163,7 +188,7 @@ const ReviewsSection = ({ escortId }: ReviewsSectionProps) => {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">
-                      {review.profiles?.full_name || 'Anonymous'}
+                      {review.client_name}
                     </span>
                     <div className="flex">{renderStars(review.rating)}</div>
                   </div>

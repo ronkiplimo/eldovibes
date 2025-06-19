@@ -10,6 +10,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
+interface ConversationWithProfile {
+  userId: string;
+  userName: string;
+  messages: any[];
+  lastMessage: any;
+  unreadCount: number;
+}
+
+interface MessageWithProfiles {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  created_at: string;
+  is_read: boolean;
+  sender_name?: string;
+  receiver_name?: string;
+}
+
 const Messages = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -22,43 +41,46 @@ const Messages = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      // Get all messages for the user
+      const { data: messagesData, error } = await supabase
         .from('messages')
-        .select(`
-          *,
-          sender:profiles!messages_sender_id_fkey(id, full_name),
-          receiver:profiles!messages_receiver_id_fkey(id, full_name)
-        `)
+        .select('*')
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Group messages by conversation
-      const grouped = data.reduce((acc, message) => {
+      // Enrich with profile data and group by conversation
+      const conversationsMap: Record<string, ConversationWithProfile> = {};
+      
+      for (const message of messagesData) {
         const otherUserId = message.sender_id === user.id ? message.receiver_id : message.sender_id;
-        const otherUser = message.sender_id === user.id ? message.receiver : message.sender;
         
-        if (!acc[otherUserId]) {
-          acc[otherUserId] = {
+        if (!conversationsMap[otherUserId]) {
+          // Get the other user's profile
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', otherUserId)
+            .single();
+          
+          conversationsMap[otherUserId] = {
             userId: otherUserId,
-            userName: otherUser?.full_name || 'Unknown User',
+            userName: profileData?.full_name || 'Unknown User',
             messages: [],
             lastMessage: message,
             unreadCount: 0
           };
         }
         
-        acc[otherUserId].messages.push(message);
+        conversationsMap[otherUserId].messages.push(message);
         
         if (message.receiver_id === user.id && !message.is_read) {
-          acc[otherUserId].unreadCount++;
+          conversationsMap[otherUserId].unreadCount++;
         }
-        
-        return acc;
-      }, {} as Record<string, any>);
+      }
 
-      return Object.values(grouped);
+      return Object.values(conversationsMap);
     },
     enabled: !!user
   });
@@ -68,18 +90,56 @@ const Messages = () => {
     queryFn: async () => {
       if (!selectedConversation || !user) return [];
       
-      const { data, error } = await supabase
+      // Get messages for this conversation
+      const { data: messagesData, error } = await supabase
         .from('messages')
-        .select(`
-          *,
-          sender:profiles!messages_sender_id_fkey(full_name),
-          receiver:profiles!messages_receiver_id_fkey(full_name)
-        `)
+        .select('*')
         .or(`and(sender_id.eq.${user.id},receiver_id.eq.${selectedConversation}),and(sender_id.eq.${selectedConversation},receiver_id.eq.${user.id})`)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return data;
+
+      // Enrich with profile data
+      const enrichedMessages: MessageWithProfiles[] = [];
+      
+      for (const message of messagesData) {
+        let senderName = 'Unknown';
+        let receiverName = 'Unknown';
+
+        // Get sender profile
+        if (message.sender_id) {
+          const { data: senderProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', message.sender_id)
+            .single();
+          
+          if (senderProfile) {
+            senderName = senderProfile.full_name || 'Unknown';
+          }
+        }
+
+        // Get receiver profile
+        if (message.receiver_id) {
+          const { data: receiverProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', message.receiver_id)
+            .single();
+          
+          if (receiverProfile) {
+            receiverName = receiverProfile.full_name || 'Unknown';
+          }
+        }
+
+        enrichedMessages.push({
+          ...message,
+          sender_name: senderName,
+          receiver_name: receiverName
+        });
+      }
+      
+      return enrichedMessages;
     },
     enabled: !!selectedConversation && !!user
   });

@@ -11,6 +11,32 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
+interface BookingWithDetails {
+  id: string;
+  client_id: string;
+  escort_id: string;
+  service_type: string;
+  booking_date: string;
+  duration_hours: number;
+  total_amount: number;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  special_requests?: string;
+  created_at: string;
+  escort_name?: string;
+  client_name?: string;
+  hourly_rate?: number;
+}
+
+interface MessageWithProfiles {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  created_at: string;
+  sender_name?: string;
+  receiver_name?: string;
+}
+
 const Dashboard = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -20,18 +46,59 @@ const Dashboard = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      // Get bookings
+      const { data: bookingsData, error } = await supabase
         .from('bookings')
-        .select(`
-          *,
-          escort_profiles!bookings_escort_id_fkey(stage_name, hourly_rate),
-          client_profile:profiles!bookings_client_id_fkey(full_name)
-        `)
+        .select('*')
         .or(`client_id.eq.${user.id},escort_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      // Enrich with profile data
+      const enrichedBookings: BookingWithDetails[] = [];
+      
+      for (const booking of bookingsData) {
+        let escortName = 'Unknown';
+        let clientName = 'Unknown';
+        let hourlyRate = 0;
+
+        // Get escort profile
+        if (booking.escort_id) {
+          const { data: escortProfile } = await supabase
+            .from('escort_profiles')
+            .select('stage_name, hourly_rate')
+            .eq('user_id', booking.escort_id)
+            .single();
+          
+          if (escortProfile) {
+            escortName = escortProfile.stage_name;
+            hourlyRate = escortProfile.hourly_rate || 0;
+          }
+        }
+
+        // Get client profile
+        if (booking.client_id) {
+          const { data: clientProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', booking.client_id)
+            .single();
+          
+          if (clientProfile) {
+            clientName = clientProfile.full_name || 'Unknown';
+          }
+        }
+
+        enrichedBookings.push({
+          ...booking,
+          escort_name: escortName,
+          client_name: clientName,
+          hourly_rate: hourlyRate
+        });
+      }
+      
+      return enrichedBookings;
     },
     enabled: !!user
   });
@@ -41,24 +108,62 @@ const Dashboard = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      // Get messages
+      const { data: messagesData, error } = await supabase
         .from('messages')
-        .select(`
-          *,
-          sender:profiles!messages_sender_id_fkey(full_name),
-          receiver:profiles!messages_receiver_id_fkey(full_name)
-        `)
+        .select('*')
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .order('created_at', { ascending: false })
         .limit(5);
 
       if (error) throw error;
-      return data;
+
+      // Enrich with profile data
+      const enrichedMessages: MessageWithProfiles[] = [];
+      
+      for (const message of messagesData) {
+        let senderName = 'Unknown';
+        let receiverName = 'Unknown';
+
+        // Get sender profile
+        if (message.sender_id) {
+          const { data: senderProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', message.sender_id)
+            .single();
+          
+          if (senderProfile) {
+            senderName = senderProfile.full_name || 'Unknown';
+          }
+        }
+
+        // Get receiver profile
+        if (message.receiver_id) {
+          const { data: receiverProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', message.receiver_id)
+            .single();
+          
+          if (receiverProfile) {
+            receiverName = receiverProfile.full_name || 'Unknown';
+          }
+        }
+
+        enrichedMessages.push({
+          ...message,
+          sender_name: senderName,
+          receiver_name: receiverName
+        });
+      }
+      
+      return enrichedMessages;
     },
     enabled: !!user
   });
 
-  const updateBookingStatus = async (bookingId: string, status: string) => {
+  const updateBookingStatus = async (bookingId: string, status: 'confirmed' | 'cancelled') => {
     try {
       const { error } = await supabase
         .from('bookings')
@@ -182,7 +287,7 @@ const Dashboard = () => {
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <h3 className="font-semibold">
-                              {booking.escort_profiles?.stage_name}
+                              {booking.escort_name}
                             </h3>
                             <p className="text-sm text-gray-600">{booking.service_type}</p>
                           </div>
@@ -234,7 +339,7 @@ const Dashboard = () => {
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <h3 className="font-semibold">
-                              {booking.client_profile?.full_name || 'Client'}
+                              {booking.client_name}
                             </h3>
                             <p className="text-sm text-gray-600">{booking.service_type}</p>
                           </div>
@@ -322,8 +427,8 @@ const Dashboard = () => {
                         <div className="flex justify-between items-start mb-2">
                           <span className="font-medium">
                             {message.sender_id === user.id 
-                              ? `To: ${message.receiver?.full_name || 'Unknown'}`
-                              : `From: ${message.sender?.full_name || 'Unknown'}`
+                              ? `To: ${message.receiver_name}`
+                              : `From: ${message.sender_name}`
                             }
                           </span>
                           <span className="text-sm text-gray-500">
