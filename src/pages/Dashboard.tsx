@@ -1,496 +1,134 @@
 
-import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useMembership } from '@/hooks/useMembership';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, MessageCircle, Star, DollarSign, Clock, CheckCircle, X } from 'lucide-react';
+import { Users, MessageSquare, CreditCard, Settings } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
-
-interface BookingWithDetails {
-  id: string;
-  client_id: string;
-  escort_id: string;
-  service_type: string;
-  booking_date: string;
-  duration_hours: number;
-  total_amount: number;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-  special_requests?: string;
-  created_at: string;
-  escort_name?: string;
-  client_name?: string;
-  hourly_rate?: number;
-}
-
-interface MessageWithProfiles {
-  id: string;
-  sender_id: string;
-  receiver_id: string;
-  content: string;
-  created_at: string;
-  sender_name?: string;
-  receiver_name?: string;
-}
+import MembershipUpgrade from '@/components/MembershipUpgrade';
 
 const Dashboard = () => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const { user, signOut } = useAuth();
+  const { data: membership } = useMembership();
 
-  const { data: bookings = [] } = useQuery({
-    queryKey: ['userBookings', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      
-      // Get bookings
-      const { data: bookingsData, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .or(`client_id.eq.${user.id},escort_id.eq.${user.id}`)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Enrich with profile data
-      const enrichedBookings: BookingWithDetails[] = [];
-      
-      for (const booking of bookingsData) {
-        let escortName = 'Unknown';
-        let clientName = 'Unknown';
-        let hourlyRate = 0;
-
-        // Get escort profile
-        if (booking.escort_id) {
-          const { data: escortProfile } = await supabase
-            .from('escort_profiles')
-            .select('stage_name, hourly_rate')
-            .eq('user_id', booking.escort_id)
-            .single();
-          
-          if (escortProfile) {
-            escortName = escortProfile.stage_name;
-            hourlyRate = escortProfile.hourly_rate || 0;
-          }
-        }
-
-        // Get client profile
-        if (booking.client_id) {
-          const { data: clientProfile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', booking.client_id)
-            .single();
-          
-          if (clientProfile) {
-            clientName = clientProfile.full_name || 'Unknown';
-          }
-        }
-
-        enrichedBookings.push({
-          ...booking,
-          escort_name: escortName,
-          client_name: clientName,
-          hourly_rate: hourlyRate
-        });
-      }
-      
-      return enrichedBookings;
-    },
-    enabled: !!user
-  });
-
-  const { data: messages = [] } = useQuery({
-    queryKey: ['recentMessages', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      
-      // Get messages
-      const { data: messagesData, error } = await supabase
-        .from('messages')
-        .select('*')
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (error) throw error;
-
-      // Enrich with profile data
-      const enrichedMessages: MessageWithProfiles[] = [];
-      
-      for (const message of messagesData) {
-        let senderName = 'Unknown';
-        let receiverName = 'Unknown';
-
-        // Get sender profile
-        if (message.sender_id) {
-          const { data: senderProfile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', message.sender_id)
-            .single();
-          
-          if (senderProfile) {
-            senderName = senderProfile.full_name || 'Unknown';
-          }
-        }
-
-        // Get receiver profile
-        if (message.receiver_id) {
-          const { data: receiverProfile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', message.receiver_id)
-            .single();
-          
-          if (receiverProfile) {
-            receiverName = receiverProfile.full_name || 'Unknown';
-          }
-        }
-
-        enrichedMessages.push({
-          ...message,
-          sender_name: senderName,
-          receiver_name: receiverName
-        });
-      }
-      
-      return enrichedMessages;
-    },
-    enabled: !!user
-  });
-
-  const updateBookingStatus = async (bookingId: string, status: 'confirmed' | 'cancelled') => {
-    try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status })
-        .eq('id', bookingId);
-
-      if (error) throw error;
-
-      toast.success(`Booking ${status} successfully`);
-      queryClient.invalidateQueries({ queryKey: ['userBookings'] });
-    } catch (error) {
-      console.error('Error updating booking:', error);
-      toast.error('Failed to update booking');
-    }
+  const handleSignOut = async () => {
+    await signOut();
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'bg-green-500';
-      case 'pending': return 'bg-yellow-500';
-      case 'completed': return 'bg-blue-500';
-      case 'cancelled': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const clientBookings = bookings.filter(booking => booking.client_id === user?.id);
-  const escortBookings = bookings.filter(booking => booking.escort_id === user?.id);
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="flex items-center justify-center h-96">
-          <p className="text-gray-600">Please sign in to access your dashboard</p>
-        </div>
-      </div>
-    );
-  }
+  const canCreateEscortProfile = membership?.status === 'paid';
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p className="text-gray-600">Welcome back, {user?.email}</p>
+        </div>
 
-        <Tabs defaultValue="bookings" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="bookings">My Bookings</TabsTrigger>
-            <TabsTrigger value="messages">Recent Messages</TabsTrigger>
-            <TabsTrigger value="earnings">Earnings</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="bookings" className="space-y-6">
-            {/* Statistics Cards */}
-            <div className="grid md:grid-cols-4 gap-6">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Total Bookings</p>
-                      <p className="text-2xl font-bold">{bookings.length}</p>
-                    </div>
-                    <Calendar className="w-8 h-8 text-purple-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Pending</p>
-                      <p className="text-2xl font-bold text-yellow-600">
-                        {bookings.filter(b => b.status === 'pending').length}
-                      </p>
-                    </div>
-                    <Clock className="w-8 h-8 text-yellow-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Confirmed</p>
-                      <p className="text-2xl font-bold text-green-600">
-                        {bookings.filter(b => b.status === 'confirmed').length}
-                      </p>
-                    </div>
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Messages</p>
-                      <p className="text-2xl font-bold">{messages.length}</p>
-                    </div>
-                    <MessageCircle className="w-8 h-8 text-purple-600" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Bookings as Client */}
-            {clientBookings.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>My Bookings (as Client)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {clientBookings.map((booking) => (
-                      <div key={booking.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h3 className="font-semibold">
-                              {booking.escort_name}
-                            </h3>
-                            <p className="text-sm text-gray-600">{booking.service_type}</p>
-                          </div>
-                          <Badge className={getStatusColor(booking.status) + ' text-white'}>
-                            {booking.status}
-                          </Badge>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <span className="text-gray-600">Date:</span>
-                            <p>{new Date(booking.booking_date).toLocaleDateString()}</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Duration:</span>
-                            <p>{booking.duration_hours} hours</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Amount:</span>
-                            <p className="font-semibold">${booking.total_amount}</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Created:</span>
-                            <p>{new Date(booking.created_at).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                        {booking.special_requests && (
-                          <div className="mt-2">
-                            <span className="text-gray-600 text-sm">Special Requests:</span>
-                            <p className="text-sm">{booking.special_requests}</p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Bookings as Escort */}
-            {escortBookings.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Booking Requests (as Escort)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {escortBookings.map((booking) => (
-                      <div key={booking.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h3 className="font-semibold">
-                              {booking.client_name}
-                            </h3>
-                            <p className="text-sm text-gray-600">{booking.service_type}</p>
-                          </div>
-                          <Badge className={getStatusColor(booking.status) + ' text-white'}>
-                            {booking.status}
-                          </Badge>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
-                          <div>
-                            <span className="text-gray-600">Date:</span>
-                            <p>{new Date(booking.booking_date).toLocaleDateString()}</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Duration:</span>
-                            <p>{booking.duration_hours} hours</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Amount:</span>
-                            <p className="font-semibold">${booking.total_amount}</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Created:</span>
-                            <p>{new Date(booking.created_at).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                        {booking.special_requests && (
-                          <div className="mb-4">
-                            <span className="text-gray-600 text-sm">Special Requests:</span>
-                            <p className="text-sm">{booking.special_requests}</p>
-                          </div>
-                        )}
-                        {booking.status === 'pending' && (
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={() => updateBookingStatus(booking.id, 'confirmed')}
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Accept
-                            </Button>
-                            <Button
-                              onClick={() => updateBookingStatus(booking.id, 'cancelled')}
-                              size="sm"
-                              variant="destructive"
-                            >
-                              <X className="w-4 h-4 mr-1" />
-                              Decline
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {bookings.length === 0 && (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-600 mb-2">No bookings yet</h3>
-                  <p className="text-gray-500">Your bookings will appear here</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="messages">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>Recent Messages</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="w-5 h-5" />
+                  Quick Actions
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                {messages.length === 0 ? (
-                  <div className="text-center py-8">
-                    <MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">No messages yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <div key={message.id} className="border-b pb-4 last:border-b-0">
-                        <div className="flex justify-between items-start mb-2">
-                          <span className="font-medium">
-                            {message.sender_id === user.id 
-                              ? `To: ${message.receiver_name}`
-                              : `From: ${message.sender_name}`
-                            }
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            {new Date(message.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="text-gray-700">{message.content}</p>
-                      </div>
-                    ))}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    disabled={!canCreateEscortProfile}
+                  >
+                    <Users className="w-6 h-6" />
+                    {canCreateEscortProfile ? 'Create Escort Profile' : 'Upgrade to Create Profile'}
+                  </Button>
+                  
+                  <Button variant="outline" className="h-20 flex-col gap-2">
+                    <MessageSquare className="w-6 h-6" />
+                    View Messages
+                  </Button>
+                </div>
+                
+                {!canCreateEscortProfile && (
+                  <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
+                    <p className="text-sm text-yellow-800">
+                      <CreditCard className="w-4 h-4 inline mr-1" />
+                      Upgrade to premium membership to create escort profiles and access all features.
+                    </p>
                   </div>
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="earnings">
+            {/* Account Stats */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
-                  Earnings Overview
-                </CardTitle>
+                <CardTitle>Account Overview</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">Total Earnings</p>
-                    <p className="text-3xl font-bold text-green-600">
-                      ${escortBookings
-                        .filter(b => b.status === 'completed')
-                        .reduce((sum, b) => sum + Number(b.total_amount), 0)
-                        .toFixed(2)
-                      }
-                    </p>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">0</div>
+                    <div className="text-sm text-gray-600">Active Profiles</div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">This Month</p>
-                    <p className="text-3xl font-bold text-blue-600">
-                      ${escortBookings
-                        .filter(b => {
-                          const bookingDate = new Date(b.booking_date);
-                          const now = new Date();
-                          return b.status === 'completed' && 
-                                 bookingDate.getMonth() === now.getMonth() &&
-                                 bookingDate.getFullYear() === now.getFullYear();
-                        })
-                        .reduce((sum, b) => sum + Number(b.total_amount), 0)
-                        .toFixed(2)
-                      }
-                    </p>
+                  
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">0</div>
+                    <div className="text-sm text-gray-600">Messages</div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">Completed Bookings</p>
-                    <p className="text-3xl font-bold text-purple-600">
-                      {escortBookings.filter(b => b.status === 'completed').length}
-                    </p>
+                  
+                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">0</div>
+                    <div className="text-sm text-gray-600">Bookings</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Membership Status */}
+            <MembershipUpgrade />
+
+            {/* Account Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Account</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Email</span>
+                  <span className="text-sm font-medium">{user?.email}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Member Since</span>
+                  <span className="text-sm font-medium">
+                    {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+                
+                <div className="pt-3 border-t">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleSignOut}
+                    className="w-full"
+                  >
+                    Sign Out
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

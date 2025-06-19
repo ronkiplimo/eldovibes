@@ -111,6 +111,48 @@ export type Database = {
         }
         Relationships: []
       }
+      memberships: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          currency: string | null
+          expires_at: string | null
+          id: string
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          status: Database["public"]["Enums"]["membership_status"] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          currency?: string | null
+          expires_at?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: Database["public"]["Enums"]["membership_status"] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          currency?: string | null
+          expires_at?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: Database["public"]["Enums"]["membership_status"] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -135,6 +177,51 @@ export type Database = {
           is_read?: boolean | null
           receiver_id?: string | null
           sender_id?: string | null
+        }
+        Relationships: []
+      }
+      mpesa_transactions: {
+        Row: {
+          amount: number
+          checkout_request_id: string | null
+          created_at: string | null
+          id: string
+          merchant_request_id: string | null
+          mpesa_receipt_number: string | null
+          phone_number: string
+          status: string | null
+          transaction_date: string | null
+          transaction_type: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          checkout_request_id?: string | null
+          created_at?: string | null
+          id?: string
+          merchant_request_id?: string | null
+          mpesa_receipt_number?: string | null
+          phone_number: string
+          status?: string | null
+          transaction_date?: string | null
+          transaction_type?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          checkout_request_id?: string | null
+          created_at?: string | null
+          id?: string
+          merchant_request_id?: string | null
+          mpesa_receipt_number?: string | null
+          phone_number?: string
+          status?: string | null
+          transaction_date?: string | null
+          transaction_type?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -216,6 +303,7 @@ export type Database = {
     Enums: {
       availability_status: "available" | "busy" | "offline"
       booking_status: "pending" | "confirmed" | "completed" | "cancelled"
+      membership_status: "free" | "paid" | "expired"
       user_role: "client" | "escort" | "admin"
     }
     CompositeTypes: {
@@ -334,6 +422,7 @@ export const Constants = {
     Enums: {
       availability_status: ["available", "busy", "offline"],
       booking_status: ["pending", "confirmed", "completed", "cancelled"],
+      membership_status: ["free", "paid", "expired"],
       user_role: ["client", "escort", "admin"],
     },
   },
