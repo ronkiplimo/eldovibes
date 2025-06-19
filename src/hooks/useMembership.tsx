@@ -29,10 +29,14 @@ export const useMembership = () => {
         .from('memberships')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return data as Membership;
+      if (error) {
+        console.error('Error fetching membership:', error);
+        throw error;
+      }
+      
+      return data as Membership | null;
     },
     enabled: !!user
   });
@@ -51,7 +55,11 @@ export const useInitiateMpesaPayment = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+      
       return data;
     },
     onSuccess: () => {

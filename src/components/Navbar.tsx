@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
@@ -14,9 +14,20 @@ import { useAuth } from '@/hooks/useAuth';
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const handleProfileClick = () => {
+    navigate('/dashboard');
+  };
+
+  const handleSettingsClick = () => {
+    // For now, navigate to dashboard as a placeholder
+    // You can create a dedicated settings page later
+    navigate('/dashboard');
   };
 
   return (
@@ -58,11 +69,11 @@ const Navbar = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleProfileClick}>
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSettingsClick}>
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Settings</span>
                     </DropdownMenuItem>

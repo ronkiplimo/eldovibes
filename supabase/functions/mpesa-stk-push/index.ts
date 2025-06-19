@@ -22,9 +22,9 @@ const handler = async (req: Request): Promise<Response> => {
     const { phoneNumber, amount, userId }: STKPushRequest = await req.json();
 
     // Initialize Supabase client
-    const supabaseUrl = "https://htbnolnksxidbnobdgjf.supabase.co";
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get M-Pesa credentials from environment
     const consumerKey = Deno.env.get('MPESA_CONSUMER_KEY');
@@ -32,8 +32,15 @@ const handler = async (req: Request): Promise<Response> => {
     const businessShortCode = Deno.env.get('MPESA_BUSINESS_SHORTCODE');
     const passkey = Deno.env.get('MPESA_PASSKEY');
 
+    console.log('M-Pesa credentials check:', {
+      hasConsumerKey: !!consumerKey,
+      hasConsumerSecret: !!consumerSecret,
+      hasBusinessShortCode: !!businessShortCode,
+      hasPasskey: !!passkey
+    });
+
     if (!consumerKey || !consumerSecret || !businessShortCode) {
-      throw new Error('Missing M-Pesa credentials');
+      throw new Error('Missing M-Pesa credentials. Please configure MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, and MPESA_BUSINESS_SHORTCODE in your Supabase secrets.');
     }
 
     // Generate access token
@@ -45,14 +52,24 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
 
+    if (!tokenResponse.ok) {
+      throw new Error(`Failed to get access token: ${tokenResponse.statusText}`);
+    }
+
     const tokenData = await tokenResponse.json();
     const accessToken = tokenData.access_token;
+
+    if (!accessToken) {
+      throw new Error('Failed to obtain access token from M-Pesa API');
+    }
 
     // Generate timestamp
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
     
     // Generate password (Base64 encoded: BusinessShortCode + Passkey + Timestamp)
-    const password = btoa(`${businessShortCode}${passkey || ''}${timestamp}`);
+    // If passkey is not available, use a default value for testing
+    const passkeyToUse = passkey || 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
+    const password = btoa(`${businessShortCode}${passkeyToUse}${timestamp}`);
 
     // Format phone number (ensure it starts with 254)
     const formattedPhone = phoneNumber.startsWith('254') ? phoneNumber : `254${phoneNumber.slice(1)}`;
@@ -67,10 +84,15 @@ const handler = async (req: Request): Promise<Response> => {
       PartyA: formattedPhone,
       PartyB: businessShortCode,
       PhoneNumber: formattedPhone,
-      CallBackURL: 'https://eldo-vibes.lovable.app/mpesa/confirmation/',
+      CallBackURL: `${supabaseUrl}/functions/v1/mpesa-callback`,
       AccountReference: `EldoVibes-${userId}`,
       TransactionDesc: 'EldoVibes Membership Payment'
     };
+
+    console.log('STK Push payload:', {
+      ...stkPushPayload,
+      Password: '[REDACTED]'
+    });
 
     // Initiate STK Push
     const stkResponse = await fetch('https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest', {
@@ -112,14 +134,15 @@ const handler = async (req: Request): Promise<Response> => {
         status: 200,
       });
     } else {
-      throw new Error(stkData.errorMessage || 'STK Push failed');
+      throw new Error(stkData.errorMessage || `STK Push failed with code: ${stkData.ResponseCode}`);
     }
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in mpesa-stk-push:', error);
     return new Response(JSON.stringify({
       success: false,
-      error: error.message
+      error: error.message,
+      details: 'Please check that your M-Pesa credentials are properly configured in Supabase secrets.'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
