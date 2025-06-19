@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Filter, X } from 'lucide-react';
+import { eldoretLocations } from '@/utils/locations';
 
 interface AdvancedSearchProps {
   onSearch: (filters: any) => void;
@@ -91,12 +92,19 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
           {/* Location */}
           <div>
             <Label htmlFor="location">Location</Label>
-            <Input
-              id="location"
-              placeholder="City or area..."
-              value={filters.location}
-              onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
-            />
+            <Select value={filters.location} onValueChange={(value) => setFilters(prev => ({ ...prev, location: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select location" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Locations</SelectItem>
+                {eldoretLocations.map((location) => (
+                  <SelectItem key={location} value={location}>
+                    {location}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Category */}

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import AdvancedSearch from '@/components/AdvancedSearch';
 import { useEscorts, useSearchEscorts } from '@/hooks/useEscorts';
 import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import { useAuth } from '@/hooks/useAuth';
+import { eldoretLocations } from '@/utils/locations';
 
 const Index = () => {
   const [searchLocation, setSearchLocation] = useState('');
@@ -84,12 +84,19 @@ const Index = () => {
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
-                  <Input
-                    placeholder="Enter location (e.g., Eldoret, Nakuru...)"
-                    value={searchLocation}
-                    onChange={(e) => setSearchLocation(e.target.value)}
-                    className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-                  />
+                  <Select value={searchLocation} onValueChange={setSearchLocation}>
+                    <SelectTrigger className="bg-white/20 border-white/30 text-white">
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Locations</SelectItem>
+                      {eldoretLocations.map((location) => (
+                        <SelectItem key={location} value={location}>
+                          {location}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex-1">
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
