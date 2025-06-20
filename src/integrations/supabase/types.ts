@@ -63,6 +63,7 @@ export type Database = {
           hourly_rate: number | null
           id: string
           location: string | null
+          profile_image_url: string | null
           rating: number | null
           services_offered: string[] | null
           stage_name: string
@@ -82,6 +83,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           location?: string | null
+          profile_image_url?: string | null
           rating?: number | null
           services_offered?: string[] | null
           stage_name: string
@@ -101,6 +103,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           location?: string | null
+          profile_image_url?: string | null
           rating?: number | null
           services_offered?: string[] | null
           stage_name?: string

@@ -85,6 +85,17 @@ const EscortProfile = () => {
             {/* Header */}
             <Card>
               <CardContent className="p-6">
+                {/* Profile Image */}
+                {escort.profile_image_url && (
+                  <div className="mb-6">
+                    <img
+                      src={escort.profile_image_url}
+                      alt={escort.stage_name}
+                      className="w-full h-64 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
+                
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <div className="flex items-center gap-3 mb-2">

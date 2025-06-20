@@ -234,6 +234,7 @@ const Index = () => {
                   verified={escort.verified}
                   availabilityStatus={escort.availability_status}
                   category={escort.category || 'General'}
+                  profileImageUrl={escort.profile_image_url || undefined}
                   onViewProfile={handleViewProfile}
                 />
               ))}

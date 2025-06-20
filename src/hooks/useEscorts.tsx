@@ -16,6 +16,7 @@ export interface EscortProfile {
   verified: boolean;
   rating: number;
   total_reviews: number;
+  profile_image_url: string | null;
   created_at: string;
   updated_at: string;
 }

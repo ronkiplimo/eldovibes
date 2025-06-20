@@ -15,6 +15,7 @@ interface EscortCardProps {
   verified: boolean;
   availabilityStatus: 'available' | 'busy' | 'offline';
   category: string;
+  profileImageUrl?: string;
   onViewProfile: (id: string) => void;
 }
 
@@ -29,6 +30,7 @@ const EscortCard = ({
   verified,
   availabilityStatus,
   category,
+  profileImageUrl,
   onViewProfile
 }: EscortCardProps) => {
   const getStatusColor = (status: string) => {
@@ -52,8 +54,18 @@ const EscortCard = ({
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative">
-        <div className="h-48 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
-          <div className="text-6xl">👤</div>
+        <div className="h-48 bg-gradient-to-br from-purple-100 to-pink-100">
+          {profileImageUrl ? (
+            <img
+              src={profileImageUrl}
+              alt={stageName}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="text-6xl">👤</div>
+            </div>
+          )}
         </div>
         <div className="absolute top-2 right-2">
           <Badge variant={availabilityStatus === 'available' ? 'default' : 'secondary'} 
