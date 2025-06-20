@@ -13,6 +13,7 @@ import { useEscorts, useSearchEscorts } from '@/hooks/useEscorts';
 import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import { useAuth } from '@/hooks/useAuth';
 import { eldoretLocations } from '@/utils/locations';
+import Footer from '@/components/Footer';
 
 const Index = () => {
   const [searchLocation, setSearchLocation] = useState('');
@@ -261,6 +262,9 @@ const Index = () => {
           onClose={() => setShowAdvancedSearch(false)}
         />
       )}
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
