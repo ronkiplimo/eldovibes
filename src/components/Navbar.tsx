@@ -9,11 +9,13 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Heart, User, LogOut, Settings, MessageCircle, LayoutDashboard } from 'lucide-react';
+import { Heart, User, LogOut, Settings, MessageCircle, LayoutDashboard, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminCheck } from '@/hooks/useAdmin';
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
+  const { data: isAdmin } = useAdminCheck();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -25,9 +27,11 @@ const Navbar = () => {
   };
 
   const handleSettingsClick = () => {
-    // For now, navigate to dashboard as a placeholder
-    // You can create a dedicated settings page later
     navigate('/dashboard');
+  };
+
+  const handleAdminClick = () => {
+    navigate('/admin');
   };
 
   return (
@@ -58,6 +62,15 @@ const Navbar = () => {
                   </Button>
                 </Link>
 
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="ghost" size="sm">
+                      <Shield className="w-4 h-4 mr-2" />
+                      Admin
+                    </Button>
+                  </Link>
+                )}
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -77,6 +90,12 @@ const Navbar = () => {
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Settings</span>
                     </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem onClick={handleAdminClick}>
+                        <Shield className="mr-2 h-4 w-4" />
+                        <span>Admin Panel</span>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>

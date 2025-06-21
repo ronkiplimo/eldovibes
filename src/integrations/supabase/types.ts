@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_activity_logs: {
+        Row: {
+          action_type: string
+          admin_id: string | null
+          created_at: string | null
+          description: string
+          id: string
+          metadata: Json | null
+          target_id: string | null
+          target_type: string
+        }
+        Insert: {
+          action_type: string
+          admin_id?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type: string
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booking_date: string
@@ -228,11 +261,39 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_settings: {
+        Row: {
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
           full_name: string | null
           id: string
+          is_admin: boolean | null
           location: string | null
           phone: string | null
           updated_at: string | null
@@ -242,6 +303,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id: string
+          is_admin?: boolean | null
           location?: string | null
           phone?: string | null
           updated_at?: string | null
@@ -251,6 +313,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id?: string
+          is_admin?: boolean | null
           location?: string | null
           phone?: string | null
           updated_at?: string | null
