@@ -13,17 +13,36 @@ const BookingManagement = () => {
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['admin-bookings', searchTerm],
     queryFn: async () => {
-      let query = supabase
+      // First get bookings
+      const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
-        .select(`
-          *,
-          escort_profiles!inner(stage_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
+      if (bookingsError) throw bookingsError;
+
+      // Then get escort profiles for those bookings
+      const escortIds = bookingsData?.map(booking => booking.escort_id).filter(Boolean) || [];
+      
+      if (escortIds.length === 0) {
+        return bookingsData?.map(booking => ({
+          ...booking,
+          escort_name: 'Unknown Escort'
+        })) || [];
+      }
+
+      const { data: escortsData, error: escortsError } = await supabase
+        .from('escort_profiles')
+        .select('id, stage_name')
+        .in('id', escortIds);
+
+      if (escortsError) throw escortsError;
+
+      // Combine the data
+      return bookingsData?.map(booking => ({
+        ...booking,
+        escort_name: escortsData?.find(escort => escort.id === booking.escort_id)?.stage_name || 'Unknown Escort'
+      })) || [];
     }
   });
 
@@ -75,7 +94,7 @@ const BookingManagement = () => {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium">
-                        Booking with {booking.escort_profiles?.stage_name}
+                        Booking with {booking.escort_name}
                       </h3>
                       {getStatusBadge(booking.status)}
                     </div>

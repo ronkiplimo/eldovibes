@@ -93,9 +93,11 @@ export type Database = {
           bio: string | null
           category: string | null
           created_at: string | null
+          date_of_birth: string | null
           hourly_rate: number | null
           id: string
           location: string | null
+          phone_number: string | null
           profile_image_url: string | null
           rating: number | null
           services_offered: string[] | null
@@ -113,9 +115,11 @@ export type Database = {
           bio?: string | null
           category?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
           hourly_rate?: number | null
           id?: string
           location?: string | null
+          phone_number?: string | null
           profile_image_url?: string | null
           rating?: number | null
           services_offered?: string[] | null
@@ -133,9 +137,11 @@ export type Database = {
           bio?: string | null
           category?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
           hourly_rate?: number | null
           id?: string
           location?: string | null
+          phone_number?: string | null
           profile_image_url?: string | null
           rating?: number | null
           services_offered?: string[] | null

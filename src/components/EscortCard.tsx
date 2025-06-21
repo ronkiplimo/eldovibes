@@ -7,16 +7,16 @@ import { Star, MapPin, Clock, Verified, Phone } from 'lucide-react';
 interface EscortCardProps {
   id: string;
   stageName: string;
-  age: number;
-  location: string;
-  hourlyRate: number;
+  age: number | null;
+  location: string | null;
+  hourlyRate: number | null;
   rating: number;
   totalReviews: number;
   verified: boolean;
   availabilityStatus: 'available' | 'busy' | 'offline';
-  category: string;
-  profileImageUrl?: string;
-  phoneNumber?: string;
+  category: string | null;
+  profileImageUrl?: string | null;
+  phoneNumber?: string | null;
   onViewProfile: (id: string) => void;
 }
 
@@ -96,10 +96,10 @@ const EscortCard = ({
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="font-semibold text-lg">{stageName}</h3>
-            <p className="text-sm text-gray-600">{age} years old</p>
+            <p className="text-sm text-gray-600">{age ? `${age} years old` : 'Age not specified'}</p>
           </div>
           <div className="text-right">
-            <p className="font-bold text-purple-600">${hourlyRate}/hr</p>
+            <p className="font-bold text-purple-600">${hourlyRate || 0}/hr</p>
             <div className="flex items-center text-sm">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
               <span>{rating.toFixed(1)} ({totalReviews})</span>
@@ -109,11 +109,11 @@ const EscortCard = ({
         
         <div className="flex items-center text-sm text-gray-600 mb-3">
           <MapPin className="w-4 h-4 mr-1" />
-          {location}
+          {location || 'Location not specified'}
         </div>
         
         <Badge variant="outline" className="mb-3">
-          {category}
+          {category || 'General'}
         </Badge>
         
         <div className="flex gap-2">
