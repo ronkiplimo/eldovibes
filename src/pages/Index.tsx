@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import { useEscorts, useSearchEscorts } from '@/hooks/useEscorts';
 import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import { useAuth } from '@/hooks/useAuth';
 import { eldoretLocations } from '@/utils/locations';
+import { escortServices } from '@/utils/escortServices';
 import Footer from '@/components/Footer';
 
 const Index = () => {
@@ -58,13 +60,11 @@ const Index = () => {
     setAdvancedFilters(null);
   };
 
-  const categories = [
-    'Companion',
-    'Entertainment',
-    'Social Events',
-    'Travel Companion',
-    'Other'
-  ];
+  const categories = escortServices.map(cat => ({
+    id: cat.id,
+    name: cat.name,
+    emoji: cat.emoji
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -102,13 +102,13 @@ const Index = () => {
                 <div className="flex-1">
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                     <SelectTrigger className="bg-white/20 border-white/30 text-white">
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder="Select service category" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Categories</SelectItem>
                       {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.emoji} {category.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -235,6 +235,7 @@ const Index = () => {
                   availabilityStatus={escort.availability_status}
                   category={escort.category || 'General'}
                   profileImageUrl={escort.profile_image_url || undefined}
+                  phoneNumber={escort.phone_number || undefined}
                   onViewProfile={handleViewProfile}
                 />
               ))}

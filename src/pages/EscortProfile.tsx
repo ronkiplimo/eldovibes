@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Star, MapPin, Clock, Verified, MessageCircle, Calendar } from 'lucide-react';
+import { Star, MapPin, Clock, Verified, MessageCircle, Calendar, Phone } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import BookingModal from '@/components/BookingModal';
 import MessageModal from '@/components/MessageModal';
@@ -72,6 +72,12 @@ const EscortProfile = () => {
       return;
     }
     setShowMessageModal(true);
+  };
+
+  const handlePhoneCall = () => {
+    if (escort.phone_number) {
+      window.location.href = `tel:${escort.phone_number}`;
+    }
   };
 
   return (
@@ -171,7 +177,7 @@ const EscortProfile = () => {
             {/* Booking Card */}
             <Card>
               <CardHeader>
-                <CardTitle>Book Now</CardTitle>
+                <CardTitle>Contact & Book</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Button 
@@ -191,6 +197,17 @@ const EscortProfile = () => {
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Send Message
                 </Button>
+
+                {escort.phone_number && (
+                  <Button 
+                    onClick={handlePhoneCall}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    Call Now
+                  </Button>
+                )}
               </CardContent>
             </Card>
 

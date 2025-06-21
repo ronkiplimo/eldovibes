@@ -2,7 +2,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Star, MapPin, Clock, Verified } from 'lucide-react';
+import { Star, MapPin, Clock, Verified, Phone } from 'lucide-react';
 
 interface EscortCardProps {
   id: string;
@@ -16,6 +16,7 @@ interface EscortCardProps {
   availabilityStatus: 'available' | 'busy' | 'offline';
   category: string;
   profileImageUrl?: string;
+  phoneNumber?: string;
   onViewProfile: (id: string) => void;
 }
 
@@ -31,6 +32,7 @@ const EscortCard = ({
   availabilityStatus,
   category,
   profileImageUrl,
+  phoneNumber,
   onViewProfile
 }: EscortCardProps) => {
   const getStatusColor = (status: string) => {
@@ -48,6 +50,12 @@ const EscortCard = ({
       case 'busy': return 'Busy';
       case 'offline': return 'Offline';
       default: return 'Unknown';
+    }
+  };
+
+  const handlePhoneCall = () => {
+    if (phoneNumber) {
+      window.location.href = `tel:${phoneNumber}`;
     }
   };
 
@@ -108,12 +116,24 @@ const EscortCard = ({
           {category}
         </Badge>
         
-        <Button 
-          onClick={() => onViewProfile(id)}
-          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-        >
-          View Profile
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => onViewProfile(id)}
+            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          >
+            View Profile
+          </Button>
+          {phoneNumber && (
+            <Button
+              onClick={handlePhoneCall}
+              variant="outline"
+              size="icon"
+              className="shrink-0"
+            >
+              <Phone className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

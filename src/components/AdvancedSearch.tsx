@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Filter, X } from 'lucide-react';
 import { eldoretLocations } from '@/utils/locations';
+import { escortServices, getAllServices } from '@/utils/escortServices';
 
 interface AdvancedSearchProps {
   onSearch: (filters: any) => void;
@@ -27,31 +29,20 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
     services: [] as string[]
   });
 
-  const categories = [
-    'Companion',
-    'Entertainment',
-    'Social Events',
-    'Travel Companion',
-    'Other'
-  ];
+  const categories = escortServices.map(cat => ({
+    id: cat.id,
+    name: cat.name,
+    emoji: cat.emoji
+  }));
 
-  const services = [
-    'Dinner Companion',
-    'Event Escort',
-    'Travel Companion',
-    'Social Events',
-    'Entertainment',
-    'Massage',
-    'Dancing',
-    'Personal Training'
-  ];
+  const services = getAllServices();
 
-  const handleServiceToggle = (service: string) => {
+  const handleServiceToggle = (serviceId: string) => {
     setFilters(prev => ({
       ...prev,
-      services: prev.services.includes(service)
-        ? prev.services.filter(s => s !== service)
-        : [...prev.services, service]
+      services: prev.services.includes(serviceId)
+        ? prev.services.filter(s => s !== serviceId)
+        : [...prev.services, serviceId]
     }));
   };
 
@@ -81,11 +72,11 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Filter className="w-5 h-5" />
-            Advanced Search
+            Advanced Search - EldoVibes Escort Services
           </CardTitle>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="w-4 h-4" />
@@ -93,6 +84,17 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
         </CardHeader>
         
         <CardContent className="space-y-6">
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <p className="text-sm text-purple-800 mb-2">
+              <strong>Explore a wide range of high-class escort services</strong> designed to suit every desire, fantasy, and mood. 
+              Our companions offer personalized experiences, from sensual relaxation to adventurous encounters.
+            </p>
+            <p className="text-xs text-purple-600">
+              🚨 <strong>Note:</strong> All services are offered at the discretion of the individual escort and may vary. 
+              Please respect boundaries and confirm availability in advance. Safety and consent are our top priorities.
+            </p>
+          </div>
+
           {/* Location */}
           <div>
             <Label htmlFor="location">Location</Label>
@@ -113,16 +115,16 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
 
           {/* Category */}
           <div>
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">Service Category</Label>
             <Select value={filters.category} onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}>
               <SelectTrigger>
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder="Select service category" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.emoji} {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -180,20 +182,30 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
             </div>
           </div>
 
-          {/* Services */}
+          {/* Services by Category */}
           <div>
-            <Label className="text-base font-medium">Services</Label>
-            <div className="grid grid-cols-2 gap-3 mt-2">
-              {services.map((service) => (
-                <div key={service} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={service}
-                    checked={filters.services.includes(service)}
-                    onCheckedChange={() => handleServiceToggle(service)}
-                  />
-                  <Label htmlFor={service} className="text-sm">
-                    {service}
-                  </Label>
+            <Label className="text-base font-medium">Specific Services</Label>
+            <div className="space-y-4 mt-3 max-h-60 overflow-y-auto">
+              {escortServices.map((category) => (
+                <div key={category.id} className="border rounded-lg p-3">
+                  <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+                    <span className="text-lg">{category.emoji}</span>
+                    {category.name}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {category.services.map((service) => (
+                      <div key={service.id} className="flex items-start space-x-2">
+                        <Checkbox
+                          id={service.id}
+                          checked={filters.services.includes(service.id)}
+                          onCheckedChange={() => handleServiceToggle(service.id)}
+                        />
+                        <Label htmlFor={service.id} className="text-xs leading-tight">
+                          {service.name}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>

@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/hooks/useAuth';
 import { useMembership } from '@/hooks/useMembership';
 import { Button } from '@/components/ui/button';
@@ -7,16 +6,37 @@ import { Badge } from '@/components/ui/badge';
 import { Users, MessageSquare, CreditCard, Settings } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import MembershipUpgrade from '@/components/MembershipUpgrade';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { data: membership } = useMembership();
+
+  // Fetch user profile to get the full name
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id
+  });
 
   const handleSignOut = async () => {
     await signOut();
   };
 
   const canCreateEscortProfile = membership?.status === 'paid';
+
+  const displayName = profile?.full_name || user?.email || 'User';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -25,7 +45,7 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {user?.email}</p>
+          <p className="text-gray-600">Welcome, {displayName}</p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">

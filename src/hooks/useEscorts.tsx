@@ -17,6 +17,8 @@ export interface EscortProfile {
   rating: number;
   total_reviews: number;
   profile_image_url: string | null;
+  phone_number: string | null;
+  date_of_birth: string | null;
   created_at: string;
   updated_at: string;
 }
