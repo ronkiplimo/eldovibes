@@ -44,7 +44,7 @@ const AdminDashboard = () => {
     },
     {
       title: 'Total Revenue',
-      value: `$${stats?.totalRevenue?.toLocaleString() || 0}`,
+      value: `KES ${stats?.totalRevenue?.toLocaleString() || 0}`,
       icon: DollarSign,
       color: 'text-yellow-600'
     },
