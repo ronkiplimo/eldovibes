@@ -37,7 +37,8 @@ const handler = async (req: Request): Promise<Response> => {
       hasConsumerKey: !!consumerKey,
       hasConsumerSecret: !!consumerSecret,
       hasBusinessShortCode: !!businessShortCode,
-      hasPasskey: !!passkey
+      hasPasskey: !!passkey,
+      businessShortCodeValue: businessShortCode // Log the actual value for debugging
     });
 
     if (!consumerKey || !consumerSecret || !businessShortCode) {
@@ -46,7 +47,31 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(JSON.stringify({
         success: false,
         error: errorMsg,
-        errorCode: 'MISSING_CREDENTIALS'
+        errorCode: 'MISSING_CREDENTIALS',
+        debug: {
+          hasConsumerKey: !!consumerKey,
+          hasConsumerSecret: !!consumerSecret,
+          hasBusinessShortCode: !!businessShortCode,
+          suggestion: 'For testing, use M-Pesa sandbox credentials: Business Shortcode 174379'
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
+
+    // Validate business shortcode format
+    if (!/^\d{5,7}$/.test(businessShortCode)) {
+      const errorMsg = `Invalid business shortcode format: ${businessShortCode}. Should be 5-7 digits.`;
+      console.error(errorMsg);
+      return new Response(JSON.stringify({
+        success: false,
+        error: errorMsg,
+        errorCode: 'INVALID_SHORTCODE_FORMAT',
+        debug: {
+          currentShortcode: businessShortCode,
+          suggestion: 'For sandbox testing, use: 174379'
+        }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
@@ -74,7 +99,11 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(JSON.stringify({
         success: false,
         error: errorMsg,
-        errorCode: 'TOKEN_FAILED'
+        errorCode: 'TOKEN_FAILED',
+        debug: {
+          consumerKeyPrefix: consumerKey.substring(0, 8) + '***',
+          suggestion: 'Check if your consumer key and secret are valid for sandbox environment'
+        }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
@@ -116,6 +145,7 @@ const handler = async (req: Request): Promise<Response> => {
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
     
     // Generate password (Base64 encoded: BusinessShortCode + Passkey + Timestamp)
+    // Use default sandbox passkey if not provided
     const passkeyToUse = passkey || 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
     const password = btoa(`${businessShortCode}${passkeyToUse}${timestamp}`);
 
@@ -128,6 +158,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log('Formatted phone number:', formattedPhone.substring(0, 6) + '***');
+    console.log('Using business shortcode:', businessShortCode);
 
     // STK Push payload
     const stkPushPayload = {
@@ -182,6 +213,47 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log('STK Push Response parsed:', stkData);
+
+    // Handle specific M-Pesa error codes
+    if (stkData.errorCode) {
+      let userFriendlyMessage = 'Payment request failed';
+      let suggestions = [];
+
+      switch (stkData.errorCode) {
+        case '500.001.1001':
+          userFriendlyMessage = 'Invalid merchant configuration';
+          suggestions = [
+            'For testing, use M-Pesa sandbox business shortcode: 174379',
+            'Ensure you are using sandbox credentials with sandbox URLs',
+            'Contact your administrator to verify M-Pesa business registration'
+          ];
+          break;
+        case '500.001.1002':
+          userFriendlyMessage = 'Invalid phone number';
+          suggestions = ['Please enter a valid M-Pesa registered phone number'];
+          break;
+        default:
+          userFriendlyMessage = stkData.errorMessage || 'Unknown payment error';
+      }
+
+      console.error('STK Push failed:', userFriendlyMessage, stkData);
+      
+      return new Response(JSON.stringify({
+        success: false,
+        error: userFriendlyMessage,
+        errorCode: 'STK_FAILED',
+        responseCode: stkData.errorCode,
+        suggestions,
+        debug: {
+          businessShortCode,
+          mpesaError: stkData.errorMessage,
+          environment: 'sandbox'
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
 
     if (stkData.ResponseCode === '0') {
       console.log('STK Push successful, saving to database...');
