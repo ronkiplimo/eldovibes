@@ -23,6 +23,15 @@ export interface EscortProfile {
   updated_at: string;
 }
 
+// Validate price range for KES 500-10000
+export const validateHourlyRate = (rate: number): boolean => {
+  return rate >= 500 && rate <= 10000;
+};
+
+export const formatCurrency = (amount: number): string => {
+  return `KES ${amount.toLocaleString()}`;
+};
+
 export const useEscorts = () => {
   return useQuery({
     queryKey: ['escorts'],

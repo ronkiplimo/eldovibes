@@ -13,6 +13,7 @@ import ReviewsSection from '@/components/ReviewsSection';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { formatCurrency } from '@/hooks/useEscorts';
 
 const EscortProfile = () => {
   const { id } = useParams();
@@ -132,7 +133,7 @@ const EscortProfile = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-3xl font-bold text-purple-600">
-                      ${escort.hourly_rate || 0}/hr
+                      {formatCurrency(escort.hourly_rate || 0)}/hr
                     </p>
                     <p className="text-sm text-gray-500">{escort.age} years old</p>
                   </div>

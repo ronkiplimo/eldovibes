@@ -22,8 +22,8 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
     category: '',
     minAge: 18,
     maxAge: 50,
-    minRate: 0,
-    maxRate: 1000,
+    minRate: 500,
+    maxRate: 10000,
     verifiedOnly: false,
     availableOnly: true,
     services: [] as string[]
@@ -62,8 +62,8 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
       category: '',
       minAge: 18,
       maxAge: 50,
-      minRate: 0,
-      maxRate: 1000,
+      minRate: 500,
+      maxRate: 10000,
       verifiedOnly: false,
       availableOnly: true,
       services: []
@@ -148,12 +148,12 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
 
           {/* Rate Range */}
           <div>
-            <Label>Hourly Rate: ${filters.minRate} - ${filters.maxRate}</Label>
+            <Label>Hourly Rate: KES {filters.minRate.toLocaleString()} - KES {filters.maxRate.toLocaleString()}</Label>
             <div className="px-2 mt-2">
               <Slider
-                min={0}
-                max={2000}
-                step={25}
+                min={500}
+                max={10000}
+                step={100}
                 value={[filters.minRate, filters.maxRate]}
                 onValueChange={([min, max]) => setFilters(prev => ({ ...prev, minRate: min, maxRate: max }))}
                 className="w-full"

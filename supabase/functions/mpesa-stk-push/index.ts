@@ -27,10 +27,10 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get M-Pesa credentials from environment
-    const consumerKey = Deno.env.get('MPESA_CONSUMER_KEY');
-    const consumerSecret = Deno.env.get('MPESA_CONSUMER_SECRET');
-    const businessShortCode = Deno.env.get('MPESA_BUSINESS_SHORTCODE');
+    // Get M-Pesa credentials from environment - use sandbox defaults for testing
+    const consumerKey = Deno.env.get('MPESA_CONSUMER_KEY') || 'CwQd8WKdFuTZg5BTQPSj9eUzgPSWLBGK';
+    const consumerSecret = Deno.env.get('MPESA_CONSUMER_SECRET') || 'EGOJKEj8ykm2P6Wl';
+    const businessShortCode = Deno.env.get('MPESA_BUSINESS_SHORTCODE') || '174379';
     const passkey = Deno.env.get('MPESA_PASSKEY');
 
     console.log('M-Pesa credentials check:', {
@@ -172,7 +172,7 @@ const handler = async (req: Request): Promise<Response> => {
       PhoneNumber: formattedPhone,
       CallBackURL: `${supabaseUrl}/functions/v1/mpesa-callback`,
       AccountReference: `EldoVibes-${userId}`,
-      TransactionDesc: 'EldoVibes Membership Payment'
+      TransactionDesc: 'EldoVibes Membership Payment (KES)'
     };
 
     console.log('STK Push payload (password redacted):', {
@@ -258,7 +258,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (stkData.ResponseCode === '0') {
       console.log('STK Push successful, saving to database...');
       
-      // Save transaction to database
+      // Save transaction to database with KES currency
       const { error } = await supabase
         .from('mpesa_transactions')
         .insert({
@@ -287,8 +287,9 @@ const handler = async (req: Request): Promise<Response> => {
 
       return new Response(JSON.stringify({
         success: true,
-        message: 'STK Push sent successfully',
-        checkoutRequestId: stkData.CheckoutRequestID
+        message: 'STK Push sent successfully - Please check your phone for M-Pesa prompt',
+        checkoutRequestId: stkData.CheckoutRequestID,
+        amount: `KES ${amount.toLocaleString()}`
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
