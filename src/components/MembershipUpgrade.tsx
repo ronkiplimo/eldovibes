@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CreditCard, CheckCircle, Clock, Phone } from 'lucide-react';
+import { Loader2, CreditCard, CheckCircle, Clock, Phone, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembership, useInitiateMpesaPayment } from '@/hooks/useMembership';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 const MembershipUpgrade = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPaymentPending, setIsPaymentPending] = useState(false);
+  const [paymentError, setPaymentError] = useState<string>('');
   const { user } = useAuth();
   const { data: membership, isLoading } = useMembership();
   const { toast } = useToast();
@@ -42,11 +42,16 @@ const MembershipUpgrade = () => {
 
     try {
       setIsPaymentPending(true);
+      setPaymentError('');
+      
+      console.log('Initiating M-Pesa payment for user:', user.id);
       
       const result = await initiateMpesaPayment.mutateAsync({
         phoneNumber,
         userId: user.id
       });
+
+      console.log('Payment result:', result);
 
       if (result.success) {
         toast({
@@ -58,13 +63,36 @@ const MembershipUpgrade = () => {
         setTimeout(() => {
           setIsPaymentPending(false);
           window.location.reload(); // Refresh to check payment status
-        }, 30000); // 30 seconds
+        }, 45000); // 45 seconds
+      } else {
+        throw new Error(result.error || 'Payment initiation failed');
       }
     } catch (error: any) {
       console.error('Payment error:', error);
+      
+      let errorMessage = 'Failed to initiate payment. Please try again.';
+      let errorDetails = '';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Check for specific error codes
+      if (error.message?.includes('MISSING_CREDENTIALS')) {
+        errorDetails = 'M-Pesa credentials are not properly configured.';
+      } else if (error.message?.includes('TOKEN_FAILED')) {
+        errorDetails = 'Failed to authenticate with M-Pesa. Please try again.';
+      } else if (error.message?.includes('STK_FAILED')) {
+        errorDetails = 'M-Pesa request failed. Please check your phone number and try again.';
+      } else if (error.message?.includes('Invalid phone number')) {
+        errorDetails = 'Please enter a valid Kenyan phone number.';
+      }
+      
+      setPaymentError(`${errorMessage}${errorDetails ? ` ${errorDetails}` : ''}`);
+      
       toast({
         title: "Payment Failed",
-        description: error.message || "Failed to initiate payment. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
       setIsPaymentPending(false);
@@ -155,6 +183,18 @@ const MembershipUpgrade = () => {
                 Pay KES 800 monthly to post escort profiles and access all premium features.
               </p>
               
+              {paymentError && (
+                <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-red-800">Payment Failed</p>
+                      <p className="text-xs text-red-600 mt-1">{paymentError}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="space-y-3">
                 <div>
                   <Label htmlFor="phone">Phone Number</Label>
@@ -165,7 +205,10 @@ const MembershipUpgrade = () => {
                       type="tel"
                       placeholder="254712345678 or 0712345678"
                       value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      onChange={(e) => {
+                        setPhoneNumber(e.target.value);
+                        if (paymentError) setPaymentError(''); // Clear error when user types
+                      }}
                       disabled={isPaymentPending}
                     />
                   </div>
