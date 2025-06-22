@@ -69,6 +69,15 @@ const Footer = () => {
                 <span>Instagram</span>
               </a>
               <a 
+                href="https://www.tiktok.com/@eldovibes" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center space-x-3 text-gray-300 hover:text-white transition-colors"
+              >
+                <div className="h-5 w-5 text-white">🎵</div>
+                <span>TikTok</span>
+              </a>
+              <a 
                 href="https://twitter.com/eldovibes" 
                 target="_blank" 
                 rel="noopener noreferrer"

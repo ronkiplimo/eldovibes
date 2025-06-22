@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { eldoretLocations } from '@/utils/locations';
 import { escortServices } from '@/utils/escortServices';
 import Footer from '@/components/Footer';
+import EldoVibesAssistant from '@/components/EldoVibesAssistant';
 
 const Index = () => {
   const [searchLocation, setSearchLocation] = useState('');
@@ -264,6 +264,9 @@ const Index = () => {
           onClose={() => setShowAdvancedSearch(false)}
         />
       )}
+
+      {/* EldoVibes Assistant */}
+      <EldoVibesAssistant />
 
       {/* Footer */}
       <Footer />
