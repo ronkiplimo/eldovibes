@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,6 +18,7 @@ const Auth = () => {
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [userRole, setUserRole] = useState<'client' | 'escort'>('client');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signUp, signIn } = useAuth();
   const { toast } = useToast();
@@ -24,6 +26,15 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!acceptedTerms) {
+      toast({
+        variant: "destructive",
+        title: "Terms Required",
+        description: "You must accept the Terms of Service to create an account."
+      });
+      return;
+    }
     
     // Validate phone number for escorts
     if (userRole === 'escort' && !phoneNumber.trim()) {
@@ -186,10 +197,29 @@ const Auth = () => {
                     required
                   />
                 </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="terms" 
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                  />
+                  <Label htmlFor="terms" className="text-sm">
+                    I accept the{' '}
+                    <button
+                      type="button"
+                      onClick={() => navigate('/terms')}
+                      className="text-purple-600 hover:text-purple-700 underline"
+                    >
+                      Terms of Service
+                    </button>
+                  </Label>
+                </div>
+
                 <Button 
                   type="submit" 
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                  disabled={loading}
+                  disabled={loading || !acceptedTerms}
                 >
                   {loading ? 'Creating account...' : 'Sign Up'}
                 </Button>
