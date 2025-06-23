@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,9 +7,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, ArrowLeft } from 'lucide-react';
+import { Heart, ArrowLeft, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
@@ -23,6 +23,7 @@ const Auth = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showEmailSent, setShowEmailSent] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const { signUp, signIn } = useAuth();
   const { toast } = useToast();
@@ -79,11 +80,11 @@ const Auth = () => {
         description: error.message
       });
     } else {
+      setShowEmailSent(true);
       toast({
         title: "Account created!",
         description: "Please check your email to verify your account."
       });
-      navigate('/');
     }
     setLoading(false);
   };
@@ -134,6 +135,68 @@ const Auth = () => {
     }
     setLoading(false);
   };
+
+  if (showEmailSent) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Heart className="h-8 w-8 text-purple-600" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                EldoVibes
+              </span>
+            </div>
+            <CardTitle className="flex items-center justify-center gap-2">
+              <Mail className="h-6 w-6 text-purple-600" />
+              Check Your Email
+            </CardTitle>
+            <CardDescription>We've sent you a verification link</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert>
+              <Mail className="h-4 w-4" />
+              <AlertDescription>
+                A verification link has been sent to <strong>{email}</strong>. 
+                Please check your email and click the link to verify your account.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="text-sm text-muted-foreground space-y-2">
+              <p>• Check your spam folder if you don't see the email</p>
+              <p>• The link will expire in 24 hours</p>
+              <p>• You can close this window after clicking the verification link</p>
+            </div>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setShowEmailSent(false);
+                setEmail('');
+                setPassword('');
+                setConfirmPassword('');
+                setFullName('');
+                setPhoneNumber('');
+                setAcceptedTerms(false);
+              }}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Sign Up
+            </Button>
+            
+            <Button
+              variant="link"
+              className="w-full text-purple-600 hover:text-purple-700"
+              onClick={() => navigate('/')}
+            >
+              Go to Home Page
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (showForgotPassword) {
     return (
