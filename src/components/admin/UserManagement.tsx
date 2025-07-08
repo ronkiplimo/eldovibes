@@ -15,15 +15,15 @@ interface UserProfile {
   full_name: string;
   user_role: string;
   is_admin: boolean;
-  is_banned?: boolean;
-  is_active?: boolean;
+  is_banned: boolean;
+  is_active: boolean;
   created_at: string;
   location: string;
   phone: string;
   escort_profile?: {
     id: string;
     stage_name: string;
-    is_active?: boolean;
+    is_active: boolean;
     verified: boolean;
   };
 }
@@ -40,12 +40,15 @@ const UserManagement = () => {
       let query = supabase
         .from('profiles')
         .select(`
-          *,
-          escort_profiles (
-            id,
-            stage_name,
-            verified
-          )
+          id,
+          full_name,
+          user_role,
+          is_admin,
+          is_banned,
+          is_active,
+          created_at,
+          location,
+          phone
         `)
         .order('created_at', { ascending: false });
 
@@ -53,18 +56,31 @@ const UserManagement = () => {
         query = query.ilike('full_name', `%${searchTerm}%`);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      
-      return data?.map(user => ({
-        ...user,
-        is_banned: user.is_banned || false,
-        is_active: user.is_active !== undefined ? user.is_active : true,
-        escort_profile: user.escort_profiles?.[0] ? {
-          ...user.escort_profiles[0],
-          is_active: user.escort_profiles[0].is_active !== undefined ? user.escort_profiles[0].is_active : true
-        } : undefined
-      })) as UserProfile[];
+      const { data: profilesData, error: profilesError } = await query;
+      if (profilesError) throw profilesError;
+
+      // Fetch escort profiles separately
+      const { data: escortData, error: escortError } = await supabase
+        .from('escort_profiles')
+        .select('id, user_id, stage_name, is_active, verified');
+
+      if (escortError) throw escortError;
+
+      // Combine the data
+      const usersWithEscortProfiles = profilesData?.map(user => {
+        const escortProfile = escortData?.find(escort => escort.user_id === user.id);
+        return {
+          ...user,
+          escort_profile: escortProfile ? {
+            id: escortProfile.id,
+            stage_name: escortProfile.stage_name,
+            is_active: escortProfile.is_active ?? true,
+            verified: escortProfile.verified ?? false
+          } : undefined
+        };
+      }) || [];
+
+      return usersWithEscortProfiles as UserProfile[];
     }
   });
 
@@ -102,10 +118,9 @@ const UserManagement = () => {
 
   const toggleBanMutation = useMutation({
     mutationFn: async ({ userId, isBanned }: { userId: string; isBanned: boolean }) => {
-      // Check if column exists before updating
       const { error } = await supabase
         .from('profiles')
-        .update({ is_banned: !isBanned } as any)
+        .update({ is_banned: !isBanned })
         .eq('id', userId);
       
       if (error) throw error;
@@ -137,7 +152,7 @@ const UserManagement = () => {
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
       const { error } = await supabase
         .from('profiles')
-        .update({ is_active: !isActive } as any)
+        .update({ is_active: !isActive })
         .eq('id', userId);
       
       if (error) throw error;
@@ -169,7 +184,7 @@ const UserManagement = () => {
     mutationFn: async ({ escortId, isActive }: { escortId: string; isActive: boolean }) => {
       const { error } = await supabase
         .from('escort_profiles')
-        .update({ is_active: !isActive } as any)
+        .update({ is_active: !isActive })
         .eq('id', escortId);
       
       if (error) throw error;
@@ -245,7 +260,7 @@ const UserManagement = () => {
                         <Badge variant="destructive">Banned</Badge>
                       )}
                       
-                      {user.is_active === false && (
+                      {!user.is_active && (
                         <Badge variant="secondary">Inactive</Badge>
                       )}
                       
@@ -272,7 +287,7 @@ const UserManagement = () => {
                       <Button
                         variant={user.is_banned ? "default" : "destructive"}
                         size="sm"
-                        onClick={() => toggleBanMutation.mutate({ userId: user.id, isBanned: user.is_banned || false })}
+                        onClick={() => toggleBanMutation.mutate({ userId: user.id, isBanned: user.is_banned })}
                         disabled={toggleBanMutation.isPending}
                       >
                         {user.is_banned ? (
@@ -289,12 +304,12 @@ const UserManagement = () => {
                       </Button>
                       
                       <Button
-                        variant={user.is_active !== false ? "destructive" : "default"}
+                        variant={user.is_active ? "destructive" : "default"}
                         size="sm"
-                        onClick={() => toggleActiveMutation.mutate({ userId: user.id, isActive: user.is_active !== false })}
+                        onClick={() => toggleActiveMutation.mutate({ userId: user.id, isActive: user.is_active })}
                         disabled={toggleActiveMutation.isPending}
                       >
-                        {user.is_active !== false ? (
+                        {user.is_active ? (
                           <>
                             <UserX className="w-4 h-4 mr-1" />
                             Deactivate
@@ -330,15 +345,15 @@ const UserManagement = () => {
                       
                       {user.escort_profile && (
                         <Button
-                          variant={user.escort_profile.is_active !== false ? "destructive" : "default"}
+                          variant={user.escort_profile.is_active ? "destructive" : "default"}
                           size="sm"
                           onClick={() => toggleEscortActiveMutation.mutate({ 
                             escortId: user.escort_profile!.id, 
-                            isActive: user.escort_profile!.is_active !== false 
+                            isActive: user.escort_profile!.is_active 
                           })}
                           disabled={toggleEscortActiveMutation.isPending}
                         >
-                          {user.escort_profile.is_active !== false ? (
+                          {user.escort_profile.is_active ? (
                             <>
                               <HeartOff className="w-4 h-4 mr-1" />
                               Deactivate Escort

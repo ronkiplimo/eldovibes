@@ -101,6 +101,7 @@ export type Database = {
           date_of_birth: string | null
           hourly_rate: number | null
           id: string
+          is_active: boolean | null
           location: string | null
           phone_number: string | null
           profile_image_url: string | null
@@ -123,6 +124,7 @@ export type Database = {
           date_of_birth?: string | null
           hourly_rate?: number | null
           id?: string
+          is_active?: boolean | null
           location?: string | null
           phone_number?: string | null
           profile_image_url?: string | null
@@ -145,6 +147,7 @@ export type Database = {
           date_of_birth?: string | null
           hourly_rate?: number | null
           id?: string
+          is_active?: boolean | null
           location?: string | null
           phone_number?: string | null
           profile_image_url?: string | null
@@ -304,7 +307,9 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string
+          is_active: boolean | null
           is_admin: boolean | null
+          is_banned: boolean | null
           location: string | null
           phone: string | null
           updated_at: string | null
@@ -314,7 +319,9 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id: string
+          is_active?: boolean | null
           is_admin?: boolean | null
+          is_banned?: boolean | null
           location?: string | null
           phone?: string | null
           updated_at?: string | null
@@ -324,7 +331,9 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean | null
           is_admin?: boolean | null
+          is_banned?: boolean | null
           location?: string | null
           phone?: string | null
           updated_at?: string | null
