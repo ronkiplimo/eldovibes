@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/hooks/useAuth';
 import { useMembership } from '@/hooks/useMembership';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { Users, MessageSquare, CreditCard, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import MembershipUpgrade from '@/components/MembershipUpgrade';
+import BecomeEscort from '@/components/BecomeEscort';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -22,11 +24,32 @@ const Dashboard = () => {
       if (!user?.id) return null;
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name')
+        .select('full_name, is_banned, is_active')
         .eq('id', user.id)
         .single();
       
       if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id
+  });
+
+  // Check if user has escort profile
+  const { data: escortProfile } = useQuery({
+    queryKey: ['escort-profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('escort_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      
       return data;
     },
     enabled: !!user?.id
@@ -40,9 +63,54 @@ const Dashboard = () => {
     navigate('/messages');
   };
 
-  const canCreateEscortProfile = membership?.status === 'paid';
-
   const displayName = profile?.full_name || user?.email || 'User';
+
+  // Check if user is banned or inactive
+  if (profile?.is_banned) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Card className="max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle className="text-red-600">Account Banned</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Your account has been banned. Please contact support for more information.
+              </p>
+              <Button onClick={handleSignOut} variant="outline" className="w-full">
+                Sign Out
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile?.is_active) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Card className="max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle className="text-yellow-600">Account Inactive</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Your account has been deactivated. Please contact support to reactivate your account.
+              </p>
+              <Button onClick={handleSignOut} variant="outline" className="w-full">
+                Sign Out
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -67,15 +135,6 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <Button
-                    variant="outline"
-                    className="h-20 flex-col gap-2"
-                    disabled={!canCreateEscortProfile}
-                  >
-                    <Users className="w-6 h-6" />
-                    {canCreateEscortProfile ? 'Create Escort Profile' : 'Upgrade to Create Profile'}
-                  </Button>
-                  
                   <Button 
                     variant="outline" 
                     className="h-20 flex-col gap-2"
@@ -84,16 +143,16 @@ const Dashboard = () => {
                     <MessageSquare className="w-6 h-6" />
                     View Messages
                   </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2"
+                    onClick={() => navigate('/profile')}
+                  >
+                    <Users className="w-6 h-6" />
+                    Edit Profile
+                  </Button>
                 </div>
-                
-                {!canCreateEscortProfile && (
-                  <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
-                    <p className="text-sm text-yellow-800">
-                      <CreditCard className="w-4 h-4 inline mr-1" />
-                      Upgrade to premium membership to create escort profiles and access all features.
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
@@ -105,8 +164,10 @@ const Dashboard = () => {
               <CardContent>
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">0</div>
-                    <div className="text-sm text-gray-600">Active Profiles</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {escortProfile ? '1' : '0'}
+                    </div>
+                    <div className="text-sm text-gray-600">Escort Profile</div>
                   </div>
                   
                   <div className="text-center p-4 bg-green-50 rounded-lg">
@@ -125,6 +186,9 @@ const Dashboard = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Become an Escort */}
+            <BecomeEscort />
+            
             {/* Membership Status */}
             <MembershipUpgrade />
 

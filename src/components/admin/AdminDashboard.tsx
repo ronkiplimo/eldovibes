@@ -1,15 +1,15 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAdminStats } from '@/hooks/useAdmin';
-import { Users, Heart, Calendar, DollarSign, AlertTriangle } from 'lucide-react';
+import { Users, Heart, Calendar, DollarSign, AlertTriangle, UserCheck, UserX } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { data: stats, isLoading } = useAdminStats();
 
   if (isLoading) {
     return (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-        {[...Array(5)].map((_, i) => (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {[...Array(8)].map((_, i) => (
           <Card key={i}>
             <CardHeader className="animate-pulse">
               <div className="h-4 bg-gray-200 rounded w-24"></div>
@@ -31,16 +31,34 @@ const AdminDashboard = () => {
       color: 'text-blue-600'
     },
     {
+      title: 'Active Users',
+      value: stats?.activeUsers || 0,
+      icon: UserCheck,
+      color: 'text-green-600'
+    },
+    {
+      title: 'Banned Users',
+      value: stats?.bannedUsers || 0,
+      icon: UserX,
+      color: 'text-red-600'
+    },
+    {
       title: 'Total Escorts',
       value: stats?.totalEscorts || 0,
       icon: Heart,
       color: 'text-purple-600'
     },
     {
+      title: 'Active Escorts',
+      value: stats?.activeEscorts || 0,
+      icon: Heart,
+      color: 'text-pink-600'
+    },
+    {
       title: 'Total Bookings',
       value: stats?.totalBookings || 0,
       icon: Calendar,
-      color: 'text-green-600'
+      color: 'text-orange-600'
     },
     {
       title: 'Total Revenue',
@@ -52,13 +70,13 @@ const AdminDashboard = () => {
       title: 'Pending Verifications',
       value: stats?.pendingVerifications || 0,
       icon: AlertTriangle,
-      color: 'text-red-600'
+      color: 'text-amber-600'
     }
   ];
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -78,22 +96,28 @@ const AdminDashboard = () => {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle>User Management Overview</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
-              <p className="text-sm text-gray-600">Recent activity and quick management tools</p>
               <div className="space-y-2">
-                <div className="p-3 bg-yellow-50 rounded-lg">
-                  <p className="text-sm font-medium text-yellow-800">
-                    {stats?.pendingVerifications || 0} escorts pending verification
-                  </p>
-                </div>
                 <div className="p-3 bg-blue-50 rounded-lg">
                   <p className="text-sm font-medium text-blue-800">
-                    Platform running smoothly
+                    {stats?.activeUsers || 0} active users out of {stats?.totalUsers || 0} total
                   </p>
                 </div>
+                <div className="p-3 bg-purple-50 rounded-lg">
+                  <p className="text-sm font-medium text-purple-800">
+                    {stats?.activeEscorts || 0} active escort profiles
+                  </p>
+                </div>
+                {(stats?.bannedUsers || 0) > 0 && (
+                  <div className="p-3 bg-red-50 rounded-lg">
+                    <p className="text-sm font-medium text-red-800">
+                      {stats?.bannedUsers || 0} banned users requiring attention
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -110,12 +134,22 @@ const AdminDashboard = () => {
                 <span className="text-sm font-medium text-green-600">Online</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Database</span>
-                <span className="text-sm font-medium text-green-600">Connected</span>
+                <span className="text-sm text-gray-600">User Activity</span>
+                <span className="text-sm font-medium text-green-600">
+                  {Math.round(((stats?.activeUsers || 0) / (stats?.totalUsers || 1)) * 100)}% Active
+                </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Storage</span>
-                <span className="text-sm font-medium text-green-600">Available</span>
+                <span className="text-sm text-gray-600">Escort Activity</span>
+                <span className="text-sm font-medium text-green-600">
+                  {Math.round(((stats?.activeEscorts || 0) / (stats?.totalEscorts || 1)) * 100)}% Active
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Pending Verifications</span>
+                <span className={`text-sm font-medium ${(stats?.pendingVerifications || 0) > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                  {stats?.pendingVerifications || 0}
+                </span>
               </div>
             </div>
           </CardContent>

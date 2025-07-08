@@ -1,11 +1,13 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
 export interface AdminStats {
   totalUsers: number;
+  activeUsers: number;
+  bannedUsers: number;
   totalEscorts: number;
+  activeEscorts: number;
   totalBookings: number;
   totalRevenue: number;
   pendingVerifications: number;
@@ -56,21 +58,35 @@ export const useAdminStats = () => {
   return useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [usersResult, escortsResult, bookingsResult, settingsResult] = await Promise.all([
+      const [
+        usersResult, 
+        activeUsersResult, 
+        bannedUsersResult, 
+        escortsResult, 
+        activeEscortsResult, 
+        bookingsResult, 
+        pendingVerificationsResult
+      ] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact' }),
+        supabase.from('profiles').select('id', { count: 'exact' }).eq('is_active', true).eq('is_banned', false),
+        supabase.from('profiles').select('id', { count: 'exact' }).eq('is_banned', true),
         supabase.from('escort_profiles').select('id', { count: 'exact' }),
+        supabase.from('escort_profiles').select('id', { count: 'exact' }).eq('is_active', true),
         supabase.from('bookings').select('id, total_amount', { count: 'exact' }),
-        supabase.from('escort_profiles').select('id').eq('verified', false)
+        supabase.from('escort_profiles').select('id').eq('verified', false).eq('is_active', true)
       ]);
 
       const totalRevenue = bookingsResult.data?.reduce((sum, booking) => sum + Number(booking.total_amount), 0) || 0;
 
       return {
         totalUsers: usersResult.count || 0,
+        activeUsers: activeUsersResult.count || 0,
+        bannedUsers: bannedUsersResult.count || 0,
         totalEscorts: escortsResult.count || 0,
+        activeEscorts: activeEscortsResult.count || 0,
         totalBookings: bookingsResult.count || 0,
         totalRevenue,
-        pendingVerifications: settingsResult.data?.length || 0
+        pendingVerifications: pendingVerificationsResult.data?.length || 0
       } as AdminStats;
     }
   });
