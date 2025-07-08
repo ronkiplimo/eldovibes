@@ -126,7 +126,7 @@ const Index = () => {
                   <Button
                     onClick={() => setShowAdvancedSearch(true)}
                     variant="outline"
-                    className="border-white/30 text-white hover:bg-white/10"
+                    className="border-2 border-white bg-white/10 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm"
                   >
                     <Filter className="w-4 h-4" />
                   </Button>

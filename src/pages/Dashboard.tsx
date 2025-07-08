@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, MessageSquare, CreditCard, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import MembershipUpgrade from '@/components/MembershipUpgrade';
 import { useQuery } from '@tanstack/react-query';
@@ -12,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { data: membership } = useMembership();
+  const navigate = useNavigate();
 
   // Fetch user profile to get the full name
   const { data: profile } = useQuery({
@@ -32,6 +34,10 @@ const Dashboard = () => {
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const handleViewMessages = () => {
+    navigate('/messages');
   };
 
   const canCreateEscortProfile = membership?.status === 'paid';
@@ -70,7 +76,11 @@ const Dashboard = () => {
                     {canCreateEscortProfile ? 'Create Escort Profile' : 'Upgrade to Create Profile'}
                   </Button>
                   
-                  <Button variant="outline" className="h-20 flex-col gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-20 flex-col gap-2"
+                    onClick={handleViewMessages}
+                  >
                     <MessageSquare className="w-6 h-6" />
                     View Messages
                   </Button>
