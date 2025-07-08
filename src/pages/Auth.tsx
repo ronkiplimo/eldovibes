@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -18,8 +18,6 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [userRole, setUserRole] = useState<'client' | 'escort'>('client');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -58,20 +56,10 @@ const Auth = () => {
       });
       return;
     }
-    
-    // Validate phone number for escorts
-    if (userRole === 'escort' && !phoneNumber.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Phone number required",
-        description: "Phone number is required for escort registration."
-      });
-      return;
-    }
 
     setLoading(true);
 
-    const { error } = await signUp(email, password, fullName, phoneNumber, userRole);
+    const { error } = await signUp(email, password, fullName);
     
     if (error) {
       toast({
@@ -177,7 +165,6 @@ const Auth = () => {
                 setPassword('');
                 setConfirmPassword('');
                 setFullName('');
-                setPhoneNumber('');
                 setAcceptedTerms(false);
               }}
             >
@@ -310,18 +297,6 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="userRole">Account Type</Label>
-                  <Select value={userRole} onValueChange={(value: 'client' | 'escort') => setUserRole(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select account type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="client">Client</SelectItem>
-                      <SelectItem value="escort">Escort</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
                   <Input
                     id="fullName"
@@ -341,19 +316,6 @@ const Auth = () => {
                     required
                   />
                 </div>
-                {userRole === 'escort' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="phoneNumber">Phone Number *</Label>
-                    <Input
-                      id="phoneNumber"
-                      type="tel"
-                      placeholder="e.g., +254 700 000 000"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      required
-                    />
-                  </div>
-                )}
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <Input
