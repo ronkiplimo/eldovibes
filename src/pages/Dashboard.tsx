@@ -24,7 +24,7 @@ const Dashboard = () => {
       if (!user?.id) return null;
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, is_banned, is_active')
+        .select('full_name')
         .eq('id', user.id)
         .single();
       
@@ -64,53 +64,6 @@ const Dashboard = () => {
   };
 
   const displayName = profile?.full_name || user?.email || 'User';
-
-  // Check if user is banned or inactive
-  if (profile?.is_banned) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-md mx-auto">
-            <CardHeader>
-              <CardTitle className="text-red-600">Account Banned</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">
-                Your account has been banned. Please contact support for more information.
-              </p>
-              <Button onClick={handleSignOut} variant="outline" className="w-full">
-                Sign Out
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  if (!profile?.is_active) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="max-w-md mx-auto">
-            <CardHeader>
-              <CardTitle className="text-yellow-600">Account Inactive</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">
-                Your account has been deactivated. Please contact support to reactivate your account.
-              </p>
-              <Button onClick={handleSignOut} variant="outline" className="w-full">
-                Sign Out
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">

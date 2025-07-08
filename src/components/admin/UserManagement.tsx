@@ -15,15 +15,15 @@ interface UserProfile {
   full_name: string;
   user_role: string;
   is_admin: boolean;
-  is_banned: boolean;
-  is_active: boolean;
+  is_banned?: boolean;
+  is_active?: boolean;
   created_at: string;
   location: string;
   phone: string;
   escort_profile?: {
     id: string;
     stage_name: string;
-    is_active: boolean;
+    is_active?: boolean;
     verified: boolean;
   };
 }
@@ -44,7 +44,6 @@ const UserManagement = () => {
           escort_profiles (
             id,
             stage_name,
-            is_active,
             verified
           )
         `)
@@ -59,7 +58,12 @@ const UserManagement = () => {
       
       return data?.map(user => ({
         ...user,
-        escort_profile: user.escort_profiles?.[0] || undefined
+        is_banned: user.is_banned || false,
+        is_active: user.is_active !== undefined ? user.is_active : true,
+        escort_profile: user.escort_profiles?.[0] ? {
+          ...user.escort_profiles[0],
+          is_active: user.escort_profiles[0].is_active !== undefined ? user.escort_profiles[0].is_active : true
+        } : undefined
       })) as UserProfile[];
     }
   });
@@ -98,9 +102,10 @@ const UserManagement = () => {
 
   const toggleBanMutation = useMutation({
     mutationFn: async ({ userId, isBanned }: { userId: string; isBanned: boolean }) => {
+      // Check if column exists before updating
       const { error } = await supabase
         .from('profiles')
-        .update({ is_banned: !isBanned })
+        .update({ is_banned: !isBanned } as any)
         .eq('id', userId);
       
       if (error) throw error;
@@ -119,10 +124,10 @@ const UserManagement = () => {
         description: `User ${newStatus ? 'banned' : 'unbanned'} successfully`
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: 'Error',
-        description: 'Failed to update user ban status',
+        description: error.message || 'Failed to update user ban status',
         variant: 'destructive'
       });
     }
@@ -132,7 +137,7 @@ const UserManagement = () => {
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
       const { error } = await supabase
         .from('profiles')
-        .update({ is_active: !isActive })
+        .update({ is_active: !isActive } as any)
         .eq('id', userId);
       
       if (error) throw error;
@@ -151,10 +156,10 @@ const UserManagement = () => {
         description: `User account ${newStatus ? 'activated' : 'deactivated'} successfully`
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: 'Error',
-        description: 'Failed to update user activation status',
+        description: error.message || 'Failed to update user activation status',
         variant: 'destructive'
       });
     }
@@ -164,7 +169,7 @@ const UserManagement = () => {
     mutationFn: async ({ escortId, isActive }: { escortId: string; isActive: boolean }) => {
       const { error } = await supabase
         .from('escort_profiles')
-        .update({ is_active: !isActive })
+        .update({ is_active: !isActive } as any)
         .eq('id', escortId);
       
       if (error) throw error;
@@ -183,10 +188,10 @@ const UserManagement = () => {
         description: `Escort profile ${newStatus ? 'activated' : 'deactivated'} successfully`
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: 'Error',
-        description: 'Failed to update escort profile status',
+        description: error.message || 'Failed to update escort profile status',
         variant: 'destructive'
       });
     }
@@ -240,7 +245,7 @@ const UserManagement = () => {
                         <Badge variant="destructive">Banned</Badge>
                       )}
                       
-                      {!user.is_active && (
+                      {user.is_active === false && (
                         <Badge variant="secondary">Inactive</Badge>
                       )}
                       
@@ -267,7 +272,7 @@ const UserManagement = () => {
                       <Button
                         variant={user.is_banned ? "default" : "destructive"}
                         size="sm"
-                        onClick={() => toggleBanMutation.mutate({ userId: user.id, isBanned: user.is_banned })}
+                        onClick={() => toggleBanMutation.mutate({ userId: user.id, isBanned: user.is_banned || false })}
                         disabled={toggleBanMutation.isPending}
                       >
                         {user.is_banned ? (
@@ -284,12 +289,12 @@ const UserManagement = () => {
                       </Button>
                       
                       <Button
-                        variant={user.is_active ? "destructive" : "default"}
+                        variant={user.is_active !== false ? "destructive" : "default"}
                         size="sm"
-                        onClick={() => toggleActiveMutation.mutate({ userId: user.id, isActive: user.is_active })}
+                        onClick={() => toggleActiveMutation.mutate({ userId: user.id, isActive: user.is_active !== false })}
                         disabled={toggleActiveMutation.isPending}
                       >
-                        {user.is_active ? (
+                        {user.is_active !== false ? (
                           <>
                             <UserX className="w-4 h-4 mr-1" />
                             Deactivate
@@ -325,15 +330,15 @@ const UserManagement = () => {
                       
                       {user.escort_profile && (
                         <Button
-                          variant={user.escort_profile.is_active ? "destructive" : "default"}
+                          variant={user.escort_profile.is_active !== false ? "destructive" : "default"}
                           size="sm"
                           onClick={() => toggleEscortActiveMutation.mutate({ 
                             escortId: user.escort_profile!.id, 
-                            isActive: user.escort_profile!.is_active 
+                            isActive: user.escort_profile!.is_active !== false 
                           })}
                           disabled={toggleEscortActiveMutation.isPending}
                         >
-                          {user.escort_profile.is_active ? (
+                          {user.escort_profile.is_active !== false ? (
                             <>
                               <HeartOff className="w-4 h-4 mr-1" />
                               Deactivate Escort
