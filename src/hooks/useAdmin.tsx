@@ -59,29 +59,56 @@ export const useAdminStats = () => {
   return useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [
-        usersResult, 
-        escortsResult, 
-        bookingsResult, 
-        pendingVerificationsResult
-      ] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact' }),
-        supabase.from('escort_profiles').select('id', { count: 'exact' }),
-        supabase.from('bookings').select('id, total_amount', { count: 'exact' }),
-        supabase.from('escort_profiles').select('id').eq('verified', false)
-      ]);
+      // Get user counts
+      const { data: allUsers, error: usersError } = await supabase
+        .from('profiles')
+        .select('id, is_active, is_banned');
+        
+      if (usersError) throw usersError;
 
-      const totalRevenue = bookingsResult.data?.reduce((sum, booking) => sum + Number(booking.total_amount), 0) || 0;
+      const totalUsers = allUsers?.length || 0;
+      const activeUsers = allUsers?.filter(user => user.is_active)?.length || 0;
+      const bannedUsers = allUsers?.filter(user => user.is_banned)?.length || 0;
+
+      // Get escort counts
+      const { data: allEscorts, error: escortsError } = await supabase
+        .from('escort_profiles')
+        .select('id, is_active');
+        
+      if (escortsError) throw escortsError;
+
+      const totalEscorts = allEscorts?.length || 0;
+      const activeEscorts = allEscorts?.filter(escort => escort.is_active)?.length || 0;
+
+      // Get booking stats
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('id, total_amount');
+        
+      if (bookingsError) throw bookingsError;
+
+      const totalBookings = bookings?.length || 0;
+      const totalRevenue = bookings?.reduce((sum, booking) => sum + Number(booking.total_amount), 0) || 0;
+
+      // Get pending verifications
+      const { data: pendingEscorts, error: pendingError } = await supabase
+        .from('escort_profiles')
+        .select('id')
+        .eq('verified', false);
+        
+      if (pendingError) throw pendingError;
+
+      const pendingVerifications = pendingEscorts?.length || 0;
 
       return {
-        totalUsers: usersResult.count || 0,
-        activeUsers: usersResult.count || 0, // Simplified for now
-        bannedUsers: 0, // Simplified for now
-        totalEscorts: escortsResult.count || 0,
-        activeEscorts: escortsResult.count || 0, // Simplified for now
-        totalBookings: bookingsResult.count || 0,
+        totalUsers,
+        activeUsers,
+        bannedUsers,
+        totalEscorts,
+        activeEscorts,
+        totalBookings,
         totalRevenue,
-        pendingVerifications: pendingVerificationsResult.data?.length || 0
+        pendingVerifications
       } as AdminStats;
     }
   });
