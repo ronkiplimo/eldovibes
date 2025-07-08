@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -15,10 +16,10 @@ export interface AdminStats {
 
 export interface ActivityLog {
   id: string;
-  admin_id: string;
+  admin_id: string | null;
   action_type: string;
   target_type: string;
-  target_id: string;
+  target_id: string | null;
   description: string;
   metadata: any;
   created_at: string;
@@ -29,7 +30,7 @@ export interface PlatformSetting {
   setting_key: string;
   setting_value: any;
   description: string;
-  updated_by: string;
+  updated_by: string | null;
   updated_at: string;
 }
 

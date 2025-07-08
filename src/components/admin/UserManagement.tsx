@@ -41,7 +41,7 @@ const UserManagement = () => {
         .from('profiles')
         .select(`
           *,
-          escort_profiles!inner (
+          escort_profiles (
             id,
             stage_name,
             is_active,
@@ -56,7 +56,11 @@ const UserManagement = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as UserProfile[];
+      
+      return data?.map(user => ({
+        ...user,
+        escort_profile: user.escort_profiles?.[0] || undefined
+      })) as UserProfile[];
     }
   });
 
