@@ -17,8 +17,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import { Heart, Shield, Camera, DollarSign, MapPin, Clock, AlertTriangle } from 'lucide-react';
-import { escortServices } from '@/utils/escortServices';
-import { kenyanLocations } from '@/utils/locations';
+import { getAllServices } from '@/utils/escortServices';
+import { eldoretLocations } from '@/utils/locations';
 
 const EscortSetup = () => {
   const { user } = useAuth();
@@ -113,12 +113,12 @@ const EscortSetup = () => {
     }
   });
 
-  const handleServiceToggle = (service: string) => {
+  const handleServiceToggle = (serviceId: string) => {
     setFormData(prev => ({
       ...prev,
-      services_offered: prev.services_offered.includes(service)
-        ? prev.services_offered.filter(s => s !== service)
-        : [...prev.services_offered, service]
+      services_offered: prev.services_offered.includes(serviceId)
+        ? prev.services_offered.filter(s => s !== serviceId)
+        : [...prev.services_offered, serviceId]
     }));
   };
 
@@ -152,6 +152,7 @@ const EscortSetup = () => {
 
   const profileStatus = getProfileStatus();
   const isPremium = membership?.status === 'paid';
+  const allServices = getAllServices();
 
   if (isLoading) {
     return (
@@ -248,7 +249,7 @@ const EscortSetup = () => {
                       <SelectValue placeholder="Select your location" />
                     </SelectTrigger>
                     <SelectContent>
-                      {kenyanLocations.map((location) => (
+                      {eldoretLocations.map((location) => (
                         <SelectItem key={location} value={location}>
                           {location}
                         </SelectItem>
@@ -348,15 +349,15 @@ const EscortSetup = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {escortServices.map((service) => (
-                  <div key={service} className="flex items-center space-x-2">
+                {allServices.map((service) => (
+                  <div key={service.id} className="flex items-center space-x-2">
                     <Checkbox
-                      id={service}
-                      checked={formData.services_offered.includes(service)}
-                      onCheckedChange={() => handleServiceToggle(service)}
+                      id={service.id}
+                      checked={formData.services_offered.includes(service.id)}
+                      onCheckedChange={() => handleServiceToggle(service.id)}
                     />
-                    <Label htmlFor={service} className="text-sm">
-                      {service}
+                    <Label htmlFor={service.id} className="text-sm">
+                      {service.name}
                     </Label>
                   </div>
                 ))}
