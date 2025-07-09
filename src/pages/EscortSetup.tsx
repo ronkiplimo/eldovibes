@@ -16,7 +16,7 @@ import { useMembership } from '@/hooks/useMembership';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
-import { Heart, Shield, Camera, DollarSign, MapPin, Clock, AlertTriangle, CheckCircle, CreditCard } from 'lucide-react';
+import { Heart, Shield, Camera, DollarSign, MapPin, Clock, AlertTriangle, CheckCircle, CreditCard, ArrowLeft } from 'lucide-react';
 import { getAllServices } from '@/utils/escortServices';
 import { eldoretLocations } from '@/utils/locations';
 
@@ -39,11 +39,13 @@ const EscortSetup = () => {
     profile_image_url: ''
   });
 
-  // Fetch existing escort profile
-  const { data: escortProfile, isLoading } = useQuery({
+  // Fetch existing escort profile with better error handling
+  const { data: escortProfile, isLoading, error } = useQuery({
     queryKey: ['escort-profile-setup', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
+      
+      console.log('EscortSetup fetching profile for user:', user.id);
       
       const { data, error } = await supabase
         .from('escort_profiles')
@@ -52,17 +54,22 @@ const EscortSetup = () => {
         .single();
       
       if (error && error.code !== 'PGRST116') {
+        console.error('EscortSetup profile fetch error:', error);
         throw error;
       }
       
+      console.log('EscortSetup profile data:', data);
       return data;
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    retry: 3, // Retry up to 3 times
+    retryDelay: 1000, // Wait 1 second between retries
   });
 
   // Populate form with existing data
   useEffect(() => {
     if (escortProfile) {
+      console.log('Populating form with profile data:', escortProfile);
       setFormData({
         stage_name: escortProfile.stage_name || '',
         bio: escortProfile.bio || '',
@@ -79,6 +86,10 @@ const EscortSetup = () => {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      if (!user?.id) throw new Error('User not authenticated');
+      
+      console.log('Updating escort profile with data:', data);
+      
       const { error } = await supabase
         .from('escort_profiles')
         .update({
@@ -93,11 +104,15 @@ const EscortSetup = () => {
           profile_image_url: data.profile_image_url,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile update error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log('Profile updated successfully');
       queryClient.invalidateQueries({ queryKey: ['escort-profile-setup'] });
       queryClient.invalidateQueries({ queryKey: ['escort-profile', user?.id] });
       toast({
@@ -106,6 +121,7 @@ const EscortSetup = () => {
       });
     },
     onError: (error) => {
+      console.error('Profile update mutation error:', error);
       toast({
         title: 'Error',
         description: 'Failed to update profile. Please try again.',
@@ -196,13 +212,20 @@ const EscortSetup = () => {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="animate-pulse">Loading...</div>
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-48 mb-8"></div>
+            <div className="space-y-4">
+              <div className="h-32 bg-gray-200 rounded"></div>
+              <div className="h-32 bg-gray-200 rounded"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!escortProfile) {
+  if (error || !escortProfile) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -210,12 +233,20 @@ const EscortSetup = () => {
           <Alert className="mb-6">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              No escort profile found. Please go back to the dashboard and click "Become an Escort" to create your profile.
+              {error ? 'Failed to load escort profile. Please try again.' : 'No escort profile found. Please go back to the dashboard and click "Become an Escort" to create your profile.'}
             </AlertDescription>
           </Alert>
-          <Button onClick={() => navigate('/dashboard')}>
-            Back to Dashboard
-          </Button>
+          <div className="flex gap-4">
+            <Button onClick={() => navigate('/dashboard')} variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            {error && (
+              <Button onClick={() => window.location.reload()}>
+                Try Again
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -468,6 +499,7 @@ const EscortSetup = () => {
               variant="outline"
               onClick={() => navigate('/dashboard')}
             >
+              <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Button>
           </div>

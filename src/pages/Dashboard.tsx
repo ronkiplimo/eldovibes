@@ -34,11 +34,13 @@ const Dashboard = () => {
     enabled: !!user?.id
   });
 
-  // Check if user has escort profile
+  // Check if user has escort profile - with real-time updates
   const { data: escortProfile } = useQuery({
     queryKey: ['escort-profile', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
+      
+      console.log('Dashboard fetching escort profile for user:', user.id);
       
       const { data, error } = await supabase
         .from('escort_profiles')
@@ -47,12 +49,16 @@ const Dashboard = () => {
         .single();
       
       if (error && error.code !== 'PGRST116') {
+        console.error('Dashboard escort profile fetch error:', error);
         throw error;
       }
       
+      console.log('Dashboard escort profile data:', data);
       return data;
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchInterval: 30000, // Refetch every 30 seconds to catch updates
   });
 
   const handleSignOut = async () => {

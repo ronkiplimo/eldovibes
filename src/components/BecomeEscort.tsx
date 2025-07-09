@@ -25,6 +25,8 @@ const BecomeEscort = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       
+      console.log('Fetching escort profile for user:', user.id);
+      
       const { data, error } = await supabase
         .from('escort_profiles')
         .select('*')
@@ -32,9 +34,11 @@ const BecomeEscort = () => {
         .single();
       
       if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching escort profile:', error);
         throw error;
       }
       
+      console.log('Escort profile data:', data);
       return data;
     },
     enabled: !!user?.id
@@ -46,28 +50,21 @@ const BecomeEscort = () => {
     setIsCreating(true);
     
     try {
-      // If escort profile already exists, just redirect to payment/setup
+      // If escort profile already exists, just redirect to setup
       if (escortProfile) {
+        console.log('Escort profile already exists, redirecting to setup');
         toast({
           title: 'Profile Found!',
           description: 'Redirecting to your escort profile setup...',
         });
-        // Redirect to payment section if profile incomplete, otherwise to edit
-        const isComplete = escortProfile.stage_name && escortProfile.bio && escortProfile.age && escortProfile.hourly_rate;
-        if (isComplete && membership?.status !== 'paid') {
-          // Profile is complete but needs payment - scroll to payment section
-          const paymentSection = document.getElementById('payment-section');
-          if (paymentSection) {
-            paymentSection.scrollIntoView({ behavior: 'smooth' });
-          }
-        } else {
-          navigate('/escort-setup');
-        }
+        navigate('/escort-setup');
         return;
       }
 
+      console.log('Creating new escort profile for user:', user.id);
+
       // Create a new escort profile
-      const { error } = await supabase
+      const { data: newProfile, error } = await supabase
         .from('escort_profiles')
         .insert({
           user_id: user.id,
@@ -79,19 +76,27 @@ const BecomeEscort = () => {
           availability_status: 'available',
           verified: false,
           is_active: false // Not active until profile is complete and payment is made
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating escort profile:', error);
+        throw error;
+      }
 
-      // Invalidate and refetch the escort profile query to update the UI immediately
+      console.log('Escort profile created successfully:', newProfile);
+
+      // Invalidate queries to refresh the UI
       await queryClient.invalidateQueries({ queryKey: ['escort-profile', user.id] });
+      await queryClient.invalidateQueries({ queryKey: ['escort-profile-setup', user.id] });
 
       toast({
         title: '🎉 Escort Profile Created Successfully!',
         description: 'Complete your profile setup and upgrade to Premium to go live.',
       });
 
-      // Redirect to escort setup page to complete profile
+      // Redirect to escort setup page
       navigate('/escort-setup');
     } catch (error) {
       console.error('Error creating escort profile:', error);
