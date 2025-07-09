@@ -16,7 +16,7 @@ import { useMembership } from '@/hooks/useMembership';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
-import { Heart, Shield, Camera, DollarSign, MapPin, Clock, AlertTriangle } from 'lucide-react';
+import { Heart, Shield, Camera, DollarSign, MapPin, Clock, AlertTriangle, CheckCircle, CreditCard } from 'lucide-react';
 import { getAllServices } from '@/utils/escortServices';
 import { eldoretLocations } from '@/utils/locations';
 
@@ -138,16 +138,42 @@ const EscortSetup = () => {
   };
 
   const getProfileStatus = () => {
-    if (!escortProfile) return { status: 'not_created', label: 'Not Created', color: 'gray' };
+    if (!escortProfile) return { status: 'not_created', label: 'Not Created', color: 'gray', description: 'Profile not found' };
     
     const isComplete = escortProfile.stage_name && escortProfile.bio && escortProfile.age && escortProfile.hourly_rate;
     const isPremium = membership?.status === 'paid';
     
-    if (!isComplete) return { status: 'incomplete', label: 'Incomplete', color: 'yellow' };
-    if (!escortProfile.verified) return { status: 'pending', label: 'Pending Approval', color: 'blue' };
-    if (!isPremium) return { status: 'needs_premium', label: 'Needs Premium', color: 'orange' };
+    if (!isComplete) return { 
+      status: 'incomplete', 
+      label: 'Draft', 
+      color: 'yellow', 
+      description: 'Complete all required fields to proceed'
+    };
     
-    return { status: 'live', label: 'Live', color: 'green' };
+    if (!isPremium) return { 
+      status: 'needs_premium', 
+      label: 'Needs Premium', 
+      color: 'orange', 
+      description: 'Upgrade to Premium to publish your profile'
+    };
+    
+    if (!escortProfile.verified) return { 
+      status: 'pending', 
+      label: 'Pending Approval', 
+      color: 'blue', 
+      description: 'Your profile is under admin review'
+    };
+    
+    return { 
+      status: 'live', 
+      label: 'Live', 
+      color: 'green', 
+      description: 'Your profile is active and visible to clients'
+    };
+  };
+
+  const isProfileComplete = () => {
+    return formData.stage_name && formData.bio && formData.age && formData.hourly_rate && formData.location;
   };
 
   const profileStatus = getProfileStatus();
@@ -160,6 +186,25 @@ const EscortSetup = () => {
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="animate-pulse">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!escortProfile) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <Alert className="mb-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              No escort profile found. Please go back to the dashboard and click "Become an Escort" to create your profile.
+            </AlertDescription>
+          </Alert>
+          <Button onClick={() => navigate('/dashboard')}>
+            Back to Dashboard
+          </Button>
         </div>
       </div>
     );
@@ -182,26 +227,60 @@ const EscortSetup = () => {
                 ${profileStatus.color === 'blue' ? 'bg-blue-100 text-blue-800' : ''}
                 ${profileStatus.color === 'orange' ? 'bg-orange-100 text-orange-800' : ''}
                 ${profileStatus.color === 'gray' ? 'bg-gray-100 text-gray-800' : ''}
+                ${profileStatus.color === 'green' ? 'bg-green-100 text-green-800' : ''}
               `}
             >
-              Profile Status: {profileStatus.label}
+              {profileStatus.status === 'incomplete' && '🚫'}
+              {profileStatus.status === 'needs_premium' && '🟨'}
+              {profileStatus.status === 'pending' && '🕓'}
+              {profileStatus.status === 'live' && '✅'}
+              {' '}Profile Status: {profileStatus.label}
             </Badge>
           </div>
+          <p className="text-sm text-gray-600 mt-2">{profileStatus.description}</p>
         </div>
 
-        {!isPremium && (
+        {/* Premium Upgrade Alert */}
+        {isProfileComplete() && !isPremium && (
           <Alert className="mb-6 border-orange-200 bg-orange-50">
-            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <CreditCard className="h-4 w-4 text-orange-600" />
             <AlertDescription className="text-orange-800">
-              <strong>Premium Required:</strong> To publish your escort profile and access all features, 
-              upgrade to Premium for KES 800/month. 
-              <Button 
-                variant="link" 
-                className="p-0 ml-2 text-orange-800 underline"
-                onClick={() => navigate('/dashboard')}
-              >
-                Upgrade Now
-              </Button>
+              <div className="flex items-center justify-between">
+                <div>
+                  <strong>Ready to Go Live!</strong> To publish your escort profile and start earning, 
+                  upgrade to Premium for KES 800/month.
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="ml-4 border-orange-300 text-orange-800 hover:bg-orange-100"
+                  onClick={() => navigate('/dashboard')}
+                >
+                  Upgrade Now
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Profile Complete but waiting for approval */}
+        {isPremium && profileStatus.status === 'pending' && (
+          <Alert className="mb-6 border-blue-200 bg-blue-50">
+            <Clock className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              <strong>Under Review:</strong> Your profile is complete and payment confirmed. 
+              Our team is reviewing your profile and will approve it within 24 hours.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Profile is live */}
+        {profileStatus.status === 'live' && (
+          <Alert className="mb-6 border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              <strong>Congratulations!</strong> Your escort profile is now live and visible to clients. 
+              You can start receiving bookings and messages.
             </AlertDescription>
           </Alert>
         )}

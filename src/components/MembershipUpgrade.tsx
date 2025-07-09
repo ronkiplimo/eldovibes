@@ -1,13 +1,16 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CreditCard, CheckCircle, Clock, Phone, AlertCircle } from 'lucide-react';
+import { Loader2, CreditCard, CheckCircle, Clock, Phone, AlertCircle, Heart } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembership, useInitiateMpesaPayment } from '@/hooks/useMembership';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const MembershipUpgrade = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -18,6 +21,27 @@ const MembershipUpgrade = () => {
   const { toast } = useToast();
   
   const initiateMpesaPayment = useInitiateMpesaPayment();
+
+  // Check if user has escort profile
+  const { data: escortProfile } = useQuery({
+    queryKey: ['escort-profile-upgrade', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('escort_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      
+      return data;
+    },
+    enabled: !!user?.id
+  });
 
   const handlePayment = async () => {
     if (!user || !phoneNumber) {
@@ -115,6 +139,8 @@ const MembershipUpgrade = () => {
     return diffDays <= 7; // Expiring within 7 days
   };
 
+  const isProfileComplete = escortProfile?.stage_name && escortProfile?.bio && escortProfile?.age && escortProfile?.hourly_rate;
+
   if (isLoading) {
     return (
       <Card className="max-w-md mx-auto">
@@ -154,7 +180,7 @@ const MembershipUpgrade = () => {
                   <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg">
                     <Clock className="w-4 h-4 text-yellow-600" />
                     <span className="text-sm text-yellow-800">
-                      Your membership expires soon. Renew to continue posting escort profiles.
+                      Your membership expires soon. Renew to continue using premium features.
                     </span>
                   </div>
                 )}
@@ -164,12 +190,25 @@ const MembershipUpgrade = () => {
             <div className="pt-4 border-t">
               <h4 className="font-medium mb-2">Premium Benefits:</h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Post escort profiles</li>
-                <li>• All browsing features</li>
-                <li>• Direct messaging</li>
-                <li>• Priority support</li>
+                <li>• Publish escort profiles</li>
+                <li>• Priority in search results</li>
+                <li>• Direct messaging with clients</li>
+                <li>• Booking management</li>
+                <li>• Priority customer support</li>
               </ul>
             </div>
+
+            {escortProfile && (
+              <div className="pt-4 border-t">
+                <div className="flex items-center gap-2 mb-2">
+                  <Heart className="w-4 h-4 text-purple-600" />
+                  <span className="font-medium text-sm">Escort Profile Status</span>
+                </div>
+                <Badge variant="outline" className="bg-green-50 text-green-700">
+                  {escortProfile.verified ? 'Live & Verified' : 'Under Review'}
+                </Badge>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -178,10 +217,33 @@ const MembershipUpgrade = () => {
             </div>
             
             <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-medium mb-2">Upgrade to Premium</h4>
-              <p className="text-sm text-gray-600 mb-3">
-                Pay KES 800 monthly to post escort profiles and access all premium features.
-              </p>
+              <div className="flex items-center gap-2 mb-2">
+                <Heart className="w-4 h-4 text-purple-600" />
+                <h4 className="font-medium">Escort Profile Premium</h4>
+              </div>
+              
+              {escortProfile ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600">
+                    {isProfileComplete 
+                      ? "Your escort profile is ready! Upgrade to Premium to publish it and start earning."
+                      : "Complete your escort profile setup, then upgrade to Premium to go live."
+                    }
+                  </p>
+                  
+                  {!isProfileComplete && (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                      <p className="text-xs text-blue-800">
+                        💡 Tip: Complete your profile setup first before upgrading to get the most value from Premium.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-600 mb-3">
+                  Create an escort profile and upgrade to Premium for KES 800/month to start earning.
+                </p>
+              )}
               
               {paymentError && (
                 <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -197,7 +259,7 @@ const MembershipUpgrade = () => {
               
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="phone">M-Pesa Phone Number</Label>
                   <div className="flex items-center gap-2 mt-1">
                     <Phone className="w-4 h-4 text-gray-500" />
                     <Input
@@ -222,7 +284,7 @@ const MembershipUpgrade = () => {
                   {isPaymentPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing Payment...
+                      Processing M-Pesa Payment...
                     </>
                   ) : (
                     <>
@@ -234,10 +296,11 @@ const MembershipUpgrade = () => {
               </div>
             </div>
 
-            <div className="text-xs text-gray-500">
-              <p>• Secure payment via M-Pesa</p>
-              <p>• 30-day membership validity</p>
-              <p>• Manual renewal required</p>
+            <div className="text-xs text-gray-500 space-y-1">
+              <p>• Secure payment via M-Pesa STK Push</p>
+              <p>• 30-day Premium membership</p>
+              <p>• Escort profiles become visible immediately after payment</p>
+              <p>• Auto-renewal available (contact support)</p>
             </div>
           </div>
         )}

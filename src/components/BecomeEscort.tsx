@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Star, Shield, Users, Settings, ArrowRight } from 'lucide-react';
+import { Heart, Star, Shield, Users, Settings, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembership } from '@/hooks/useMembership';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,34 +45,37 @@ const BecomeEscort = () => {
     setIsCreating(true);
     
     try {
-      // Create a basic escort profile if it doesn't exist
-      if (!escortProfile) {
-        const { error } = await supabase
-          .from('escort_profiles')
-          .insert({
-            user_id: user.id,
-            stage_name: 'New Escort', // Default stage name
-            bio: '', // Empty bio to be filled in setup
-            age: 25, // Default age
-            hourly_rate: 5000, // Default rate
-            location: 'Eldoret',
-            availability_status: 'available',
-            verified: false, // Will be verified by admin
-            is_active: true
-          });
-
-        if (error) throw error;
-
-        toast({
-          title: 'Escort Profile Created!',
-          description: 'Please complete your profile setup to start receiving bookings.',
-        });
-      } else {
+      // If escort profile already exists, just redirect to setup
+      if (escortProfile) {
         toast({
           title: 'Profile Found!',
-          description: 'Redirecting to profile setup...',
+          description: 'Redirecting to your escort profile setup...',
         });
+        navigate('/escort-setup');
+        return;
       }
+
+      // Create a new escort profile
+      const { error } = await supabase
+        .from('escort_profiles')
+        .insert({
+          user_id: user.id,
+          stage_name: '', // Empty to be filled in setup
+          bio: '',
+          age: null,
+          hourly_rate: null,
+          location: '',
+          availability_status: 'available',
+          verified: false,
+          is_active: false // Not active until profile is complete and payment is made
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Escort Profile Created!',
+        description: 'Please complete your profile setup to start receiving bookings.',
+      });
 
       // Redirect to escort setup page
       navigate('/escort-setup');
@@ -89,16 +92,38 @@ const BecomeEscort = () => {
   };
 
   const getProfileStatus = () => {
-    if (!escortProfile) return { status: 'not_created', label: 'Not Created', color: 'gray' };
+    if (!escortProfile) return { status: 'not_created', label: 'Not Created', color: 'gray', description: 'Create your escort profile to start earning' };
     
-    const isComplete = escortProfile.stage_name && escortProfile.bio && escortProfile.age && escortProfile.hourly_rate && escortProfile.stage_name !== 'New Escort';
+    const isComplete = escortProfile.stage_name && escortProfile.bio && escortProfile.age && escortProfile.hourly_rate;
     const isPremium = membership?.status === 'paid';
     
-    if (!isComplete) return { status: 'incomplete', label: 'Incomplete', color: 'yellow' };
-    if (!escortProfile.verified) return { status: 'pending', label: 'Pending Approval', color: 'blue' };
-    if (!isPremium) return { status: 'needs_premium', label: 'Needs Premium', color: 'orange' };
+    if (!isComplete) return { 
+      status: 'incomplete', 
+      label: 'Draft', 
+      color: 'yellow', 
+      description: 'Complete your profile information'
+    };
     
-    return { status: 'live', label: 'Live', color: 'green' };
+    if (!isPremium) return { 
+      status: 'needs_premium', 
+      label: 'Pending Payment', 
+      color: 'orange', 
+      description: 'Upgrade to Premium to publish your profile'
+    };
+    
+    if (!escortProfile.verified) return { 
+      status: 'pending_approval', 
+      label: 'Pending Approval', 
+      color: 'blue', 
+      description: 'Your profile is under review'
+    };
+    
+    return { 
+      status: 'live', 
+      label: 'Live', 
+      color: 'green', 
+      description: 'Your profile is active and visible to clients'
+    };
   };
 
   if (isLoading) {
@@ -123,43 +148,55 @@ const BecomeEscort = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-purple-600" />
-            Escort Profile
+            Your Escort Profile
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2">
               <Badge 
                 variant={profileStatus.color === 'green' ? 'default' : 'secondary'}
                 className={`
+                  w-fit
                   ${profileStatus.color === 'yellow' ? 'bg-yellow-100 text-yellow-800' : ''}
                   ${profileStatus.color === 'blue' ? 'bg-blue-100 text-blue-800' : ''}
                   ${profileStatus.color === 'orange' ? 'bg-orange-100 text-orange-800' : ''}
                   ${profileStatus.color === 'gray' ? 'bg-gray-100 text-gray-800' : ''}
+                  ${profileStatus.color === 'green' ? 'bg-green-100 text-green-800' : ''}
                 `}
               >
-                <Heart className="w-3 h-3 mr-1" />
-                Status: {profileStatus.label}
+                {profileStatus.status === 'incomplete' && '🚫'}
+                {profileStatus.status === 'needs_premium' && '🟨'}
+                {profileStatus.status === 'pending_approval' && '🕓'}
+                {profileStatus.status === 'live' && '✅'}
+                {' '}Status: {profileStatus.label}
               </Badge>
+              
+              <p className="text-sm text-gray-600">{profileStatus.description}</p>
+              
               {escortProfile.verified && (
-                <Badge variant="default">
+                <Badge variant="default" className="w-fit">
                   <Shield className="w-3 h-3 mr-1" />
                   Verified
                 </Badge>
               )}
             </div>
             
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600">
-                <strong>Stage Name:</strong> {escortProfile.stage_name}
-              </p>
-              <p className="text-sm text-gray-600">
-                <strong>Status:</strong> {escortProfile.availability_status}
-              </p>
-              <p className="text-sm text-gray-600">
-                <strong>Hourly Rate:</strong> KES {escortProfile.hourly_rate?.toLocaleString()}
-              </p>
-            </div>
+            {escortProfile.stage_name && (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600">
+                  <strong>Stage Name:</strong> {escortProfile.stage_name}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Status:</strong> {escortProfile.availability_status}
+                </p>
+                {escortProfile.hourly_rate && (
+                  <p className="text-sm text-gray-600">
+                    <strong>Hourly Rate:</strong> KES {escortProfile.hourly_rate?.toLocaleString()}
+                  </p>
+                )}
+              </div>
+            )}
             
             <div className="space-y-2">
               <Button 
@@ -173,12 +210,17 @@ const BecomeEscort = () => {
               </Button>
               
               {profileStatus.status === 'needs_premium' && (
-                <Button 
-                  onClick={() => navigate('/dashboard')}
-                  className="w-full bg-orange-600 hover:bg-orange-700"
-                >
-                  Upgrade to Premium - KES 800/month
-                </Button>
+                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-orange-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-orange-800">Premium Required</p>
+                      <p className="text-xs text-orange-600 mt-1">
+                        Upgrade to Premium for KES 800/month to publish your profile and start earning.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -227,7 +269,7 @@ const BecomeEscort = () => {
               {!isCreating && <ArrowRight className="w-4 h-4 ml-2" />}
             </Button>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              You'll be redirected to complete your profile setup
+              You'll complete your profile setup on the next page
             </p>
           </div>
         </div>
