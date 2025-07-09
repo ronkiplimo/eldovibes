@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Star, Shield, Users, Settings, ArrowRight, AlertCircle } from 'lucide-react';
+import { Heart, Star, Shield, Users, Settings, ArrowRight, AlertCircle, CreditCard } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembership } from '@/hooks/useMembership';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +16,7 @@ const BecomeEscort = () => {
   const { data: membership } = useMembership();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
 
   // Check if user already has an escort profile
@@ -45,13 +46,23 @@ const BecomeEscort = () => {
     setIsCreating(true);
     
     try {
-      // If escort profile already exists, just redirect to setup
+      // If escort profile already exists, just redirect to payment/setup
       if (escortProfile) {
         toast({
           title: 'Profile Found!',
           description: 'Redirecting to your escort profile setup...',
         });
-        navigate('/escort-setup');
+        // Redirect to payment section if profile incomplete, otherwise to edit
+        const isComplete = escortProfile.stage_name && escortProfile.bio && escortProfile.age && escortProfile.hourly_rate;
+        if (isComplete && membership?.status !== 'paid') {
+          // Profile is complete but needs payment - scroll to payment section
+          const paymentSection = document.getElementById('payment-section');
+          if (paymentSection) {
+            paymentSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        } else {
+          navigate('/escort-setup');
+        }
         return;
       }
 
@@ -72,12 +83,15 @@ const BecomeEscort = () => {
 
       if (error) throw error;
 
+      // Invalidate and refetch the escort profile query to update the UI immediately
+      await queryClient.invalidateQueries({ queryKey: ['escort-profile', user.id] });
+
       toast({
-        title: 'Escort Profile Created!',
-        description: 'Please complete your profile setup to start receiving bookings.',
+        title: '🎉 Escort Profile Created Successfully!',
+        description: 'Complete your profile setup and upgrade to Premium to go live.',
       });
 
-      // Redirect to escort setup page
+      // Redirect to escort setup page to complete profile
       navigate('/escort-setup');
     } catch (error) {
       console.error('Error creating escort profile:', error);
@@ -92,37 +106,47 @@ const BecomeEscort = () => {
   };
 
   const getProfileStatus = () => {
-    if (!escortProfile) return { status: 'not_created', label: 'Not Created', color: 'gray', description: 'Create your escort profile to start earning' };
+    if (!escortProfile) return { 
+      status: 'not_created', 
+      label: 'Not Created', 
+      color: 'gray', 
+      description: 'Create your escort profile to start earning',
+      emoji: '❌'
+    };
     
     const isComplete = escortProfile.stage_name && escortProfile.bio && escortProfile.age && escortProfile.hourly_rate;
     const isPremium = membership?.status === 'paid';
     
     if (!isComplete) return { 
       status: 'incomplete', 
-      label: 'Draft', 
+      label: 'Created – Setup Required', 
       color: 'yellow', 
-      description: 'Complete your profile information'
+      description: 'Complete your profile information to proceed',
+      emoji: '✅'
     };
     
     if (!isPremium) return { 
       status: 'needs_premium', 
-      label: 'Pending Payment', 
+      label: 'Created – Not Yet Listed', 
       color: 'orange', 
-      description: 'Upgrade to Premium to publish your profile'
+      description: 'Upgrade to Premium to publish your profile',
+      emoji: '✅'
     };
     
     if (!escortProfile.verified) return { 
       status: 'pending_approval', 
       label: 'Pending Approval', 
       color: 'blue', 
-      description: 'Your profile is under review'
+      description: 'Your profile is under review',
+      emoji: '🕓'
     };
     
     return { 
       status: 'live', 
-      label: 'Live', 
+      label: 'Listed', 
       color: 'green', 
-      description: 'Your profile is active and visible to clients'
+      description: 'Your profile is active and visible to clients',
+      emoji: '🌐'
     };
   };
 
@@ -165,11 +189,7 @@ const BecomeEscort = () => {
                   ${profileStatus.color === 'green' ? 'bg-green-100 text-green-800' : ''}
                 `}
               >
-                {profileStatus.status === 'incomplete' && '🚫'}
-                {profileStatus.status === 'needs_premium' && '🟨'}
-                {profileStatus.status === 'pending_approval' && '🕓'}
-                {profileStatus.status === 'live' && '✅'}
-                {' '}Status: {profileStatus.label}
+                {profileStatus.emoji} Status: {profileStatus.label}
               </Badge>
               
               <p className="text-sm text-gray-600">{profileStatus.description}</p>
@@ -210,14 +230,34 @@ const BecomeEscort = () => {
               </Button>
               
               {profileStatus.status === 'needs_premium' && (
-                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-orange-600 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-orange-800">Premium Required</p>
-                      <p className="text-xs text-orange-600 mt-1">
-                        Upgrade to Premium for KES 800/month to publish your profile and start earning.
+                <div className="p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border border-orange-200">
+                  <div className="flex items-start gap-3">
+                    <CreditCard className="w-5 h-5 text-orange-600 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-orange-800 mb-2">
+                        🎉 Profile Ready! Upgrade to Premium to Go Live
                       </p>
+                      <p className="text-xs text-orange-600 mb-3">
+                        Your escort profile is complete. Upgrade to Premium for KES 800/month to publish it and start earning.
+                      </p>
+                      <div className="bg-white p-3 rounded border border-orange-200 mb-3">
+                        <p className="text-xs font-medium text-gray-700 mb-1">Pay via M-Pesa:</p>
+                        <p className="text-xs text-gray-600">Till Number: <strong>9009227</strong></p>
+                        <p className="text-xs text-gray-600">Amount: <strong>KES 800</strong></p>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        onClick={() => {
+                          const paymentSection = document.getElementById('payment-section');
+                          if (paymentSection) {
+                            paymentSection.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }}
+                      >
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Upgrade to Premium
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -240,6 +280,12 @@ const BecomeEscort = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="outline" className="bg-gray-50 text-gray-700">
+              ❌ Status: Not Created
+            </Badge>
+          </div>
+          
           <p className="text-gray-600">
             Join our exclusive network of verified companions and start earning with EldoVibes.
           </p>

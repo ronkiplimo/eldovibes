@@ -63,7 +63,43 @@ const Dashboard = () => {
     navigate('/messages');
   };
 
+  const getEscortProfileStatus = () => {
+    if (!escortProfile) return { 
+      label: 'Not Created', 
+      emoji: '❌', 
+      color: 'bg-gray-100 text-gray-800' 
+    };
+    
+    const isComplete = escortProfile.stage_name && escortProfile.bio && escortProfile.age && escortProfile.hourly_rate;
+    const isPremium = membership?.status === 'paid';
+    
+    if (!isComplete) return { 
+      label: 'Created – Setup Required', 
+      emoji: '✅', 
+      color: 'bg-yellow-100 text-yellow-800' 
+    };
+    
+    if (!isPremium) return { 
+      label: 'Created – Not Yet Listed', 
+      emoji: '✅', 
+      color: 'bg-orange-100 text-orange-800' 
+    };
+    
+    if (!escortProfile.verified) return { 
+      label: 'Pending Approval', 
+      emoji: '🕓', 
+      color: 'bg-blue-100 text-blue-800' 
+    };
+    
+    return { 
+      label: 'Listed', 
+      emoji: '🌐', 
+      color: 'bg-green-100 text-green-800' 
+    };
+  };
+
   const displayName = profile?.full_name || user?.email || 'User';
+  const escortStatus = getEscortProfileStatus();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -120,7 +156,10 @@ const Dashboard = () => {
                     <div className="text-2xl font-bold text-blue-600">
                       {escortProfile ? '1' : '0'}
                     </div>
-                    <div className="text-sm text-gray-600">Escort Profile</div>
+                    <div className="text-sm text-gray-600 mb-2">Escort Profile</div>
+                    <Badge variant="outline" className={`text-xs ${escortStatus.color}`}>
+                      {escortStatus.emoji} {escortStatus.label}
+                    </Badge>
                   </div>
                   
                   <div className="text-center p-4 bg-green-50 rounded-lg">
@@ -143,7 +182,9 @@ const Dashboard = () => {
             <BecomeEscort />
             
             {/* Membership Status */}
-            <MembershipUpgrade />
+            <div id="payment-section">
+              <MembershipUpgrade />
+            </div>
 
             {/* Account Actions */}
             <Card>

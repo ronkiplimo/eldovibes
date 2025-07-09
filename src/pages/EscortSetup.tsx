@@ -99,6 +99,7 @@ const EscortSetup = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['escort-profile-setup'] });
+      queryClient.invalidateQueries({ queryKey: ['escort-profile', user?.id] });
       toast({
         title: 'Profile Updated!',
         description: 'Your escort profile has been saved successfully.',
@@ -138,37 +139,47 @@ const EscortSetup = () => {
   };
 
   const getProfileStatus = () => {
-    if (!escortProfile) return { status: 'not_created', label: 'Not Created', color: 'gray', description: 'Profile not found' };
+    if (!escortProfile) return { 
+      status: 'not_created', 
+      label: 'Not Created', 
+      color: 'gray', 
+      description: 'Profile not found',
+      emoji: '❌'
+    };
     
     const isComplete = escortProfile.stage_name && escortProfile.bio && escortProfile.age && escortProfile.hourly_rate;
     const isPremium = membership?.status === 'paid';
     
     if (!isComplete) return { 
       status: 'incomplete', 
-      label: 'Draft', 
+      label: 'Created – Setup Required', 
       color: 'yellow', 
-      description: 'Complete all required fields to proceed'
+      description: 'Complete all required fields to proceed',
+      emoji: '✅'
     };
     
     if (!isPremium) return { 
       status: 'needs_premium', 
-      label: 'Needs Premium', 
+      label: 'Created – Not Yet Listed', 
       color: 'orange', 
-      description: 'Upgrade to Premium to publish your profile'
+      description: 'Upgrade to Premium to publish your profile',
+      emoji: '✅'
     };
     
     if (!escortProfile.verified) return { 
       status: 'pending', 
       label: 'Pending Approval', 
       color: 'blue', 
-      description: 'Your profile is under admin review'
+      description: 'Your profile is under admin review',
+      emoji: '🕓'
     };
     
     return { 
       status: 'live', 
-      label: 'Live', 
+      label: 'Listed', 
       color: 'green', 
-      description: 'Your profile is active and visible to clients'
+      description: 'Your profile is active and visible to clients',
+      emoji: '🌐'
     };
   };
 
@@ -230,11 +241,7 @@ const EscortSetup = () => {
                 ${profileStatus.color === 'green' ? 'bg-green-100 text-green-800' : ''}
               `}
             >
-              {profileStatus.status === 'incomplete' && '🚫'}
-              {profileStatus.status === 'needs_premium' && '🟨'}
-              {profileStatus.status === 'pending' && '🕓'}
-              {profileStatus.status === 'live' && '✅'}
-              {' '}Profile Status: {profileStatus.label}
+              {profileStatus.emoji} Profile Status: {profileStatus.label}
             </Badge>
           </div>
           <p className="text-sm text-gray-600 mt-2">{profileStatus.description}</p>
@@ -242,13 +249,15 @@ const EscortSetup = () => {
 
         {/* Premium Upgrade Alert */}
         {isProfileComplete() && !isPremium && (
-          <Alert className="mb-6 border-orange-200 bg-orange-50">
+          <Alert className="mb-6 border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50">
             <CreditCard className="h-4 w-4 text-orange-600" />
             <AlertDescription className="text-orange-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <strong>Ready to Go Live!</strong> To publish your escort profile and start earning, 
-                  upgrade to Premium for KES 800/month.
+                  <strong>🎉 Profile Ready! Upgrade to Premium to Go Live!</strong>
+                  <p className="text-sm mt-1">
+                    Your escort profile is complete. Upgrade to Premium for KES 800/month to publish it and start earning.
+                  </p>
                 </div>
                 <Button 
                   variant="outline" 
@@ -279,7 +288,7 @@ const EscortSetup = () => {
           <Alert className="mb-6 border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              <strong>Congratulations!</strong> Your escort profile is now live and visible to clients. 
+              <strong>🌐 Congratulations!</strong> Your escort profile is now live and visible to clients. 
               You can start receiving bookings and messages.
             </AlertDescription>
           </Alert>
