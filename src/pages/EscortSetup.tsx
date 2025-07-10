@@ -197,7 +197,7 @@ const EscortSetup = () => {
     );
   }
 
-  if (profileError && profileError.code !== 'PGRST116') {
+  if (profileError && (profileError as any).code !== 'PGRST116') {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -221,7 +221,9 @@ const EscortSetup = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <MembershipGuard />
+        <MembershipGuard>
+          <div></div>
+        </MembershipGuard>
       </div>
     );
   }
@@ -441,9 +443,9 @@ const EscortSetup = () => {
               </CardHeader>
               <CardContent>
                 <ImageUpload
-                  value={profileImageUrl}
-                  onChange={setProfileImageUrl}
-                  bucket="profile-images"
+                  currentImageUrl={profileImageUrl}
+                  onImageUpload={setProfileImageUrl}
+                  onImageRemove={() => setProfileImageUrl('')}
                 />
               </CardContent>
             </Card>
