@@ -9,11 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { AlertCircle, CheckCircle, Save, ArrowLeft, Upload } from 'lucide-react';
+import { AlertCircle, Save, ArrowLeft } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import ImageUpload from '@/components/ImageUpload';
-import MembershipGuard from '@/components/MembershipGuard';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembership } from '@/hooks/useMembership';
@@ -105,7 +103,8 @@ const EscortSetup = () => {
           services_offered: profileData.servicesOffered,
           profile_image_url: profileData.profileImageUrl,
           availability_status: profileData.availabilityStatus,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          verified: false // Keep as false until payment is completed
         })
         .select()
         .single();
@@ -125,6 +124,17 @@ const EscortSetup = () => {
         title: 'Profile Saved!',
         description: 'Your escort profile has been updated successfully.',
       });
+      
+      // If not paid, redirect to membership page
+      if (membership?.status !== 'paid') {
+        toast({
+          title: 'Complete Your Setup',
+          description: 'Please upgrade to Premium to activate your profile.',
+        });
+        setTimeout(() => {
+          navigate('/membership');
+        }, 2000);
+      }
     },
     onError: (error: any) => {
       console.error('Failed to save profile:', error);
@@ -217,37 +227,6 @@ const EscortSetup = () => {
     );
   }
 
-  if (!isPaidMember) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <MembershipGuard>
-          <div></div>
-        </MembershipGuard>
-      </div>
-    );
-  }
-
-  if (!escortProfile && !profileError) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-orange-600 mb-2">No Escort Profile Found</h2>
-              <p className="text-gray-600 mb-4">You need to create an escort profile first.</p>
-              <Button onClick={() => navigate('/dashboard')}>
-                Back to Dashboard
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -261,7 +240,9 @@ const EscortSetup = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Escort Profile Setup</h1>
-            <p className="text-gray-600">Complete your profile to start accepting bookings</p>
+            <p className="text-gray-600">
+              {escortProfile ? 'Update your profile information' : 'Create your escort profile'}
+            </p>
           </div>
         </div>
 
@@ -270,26 +251,29 @@ const EscortSetup = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {isProfileComplete ? (
-                  <CheckCircle className="w-6 h-6 text-green-500" />
-                ) : (
-                  <AlertCircle className="w-6 h-6 text-orange-500" />
-                )}
+                <AlertCircle className={`w-6 h-6 ${isProfileComplete ? 'text-green-500' : 'text-orange-500'}`} />
                 <div>
                   <h3 className="font-semibold">
-                    Profile Status: {isProfileComplete ? 'Complete' : 'Incomplete'}
+                    {isProfileComplete ? 'Profile Complete' : 'Profile Incomplete'}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {isProfileComplete 
-                      ? 'Your profile is complete and ready for review'
-                      : 'Complete all required fields to activate your profile'
+                    {isPaidMember 
+                      ? (isProfileComplete ? 'Your profile is active and listed' : 'Complete all fields to activate')
+                      : (isProfileComplete ? 'Complete payment to activate your profile' : 'Complete profile, then upgrade to Premium')
                     }
                   </p>
                 </div>
               </div>
-              <Badge variant={isProfileComplete ? 'default' : 'secondary'}>
-                {isProfileComplete ? 'Ready' : 'In Progress'}
-              </Badge>
+              <div className="flex gap-2">
+                <Badge variant={isProfileComplete ? 'default' : 'secondary'}>
+                  {isProfileComplete ? 'Complete' : 'In Progress'}
+                </Badge>
+                {isPaidMember && (
+                  <Badge className="bg-green-100 text-green-800">
+                    Premium
+                  </Badge>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -483,6 +467,16 @@ const EscortSetup = () => {
                   <Save className="w-4 h-4 mr-2" />
                   {saveProfileMutation.isPending ? 'Saving...' : 'Save Profile'}
                 </Button>
+                
+                {!isPaidMember && isProfileComplete && (
+                  <Button 
+                    onClick={() => navigate('/membership')}
+                    variant="outline"
+                    className="w-full mt-2"
+                  >
+                    Upgrade to Premium
+                  </Button>
+                )}
               </CardContent>
             </Card>
 

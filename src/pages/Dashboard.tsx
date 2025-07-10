@@ -4,10 +4,9 @@ import { useMembership } from '@/hooks/useMembership';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, MessageSquare, CreditCard, Settings } from 'lucide-react';
+import { Users, MessageSquare, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
-import MembershipUpgrade from '@/components/MembershipUpgrade';
 import BecomeEscort from '@/components/BecomeEscort';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -57,8 +56,8 @@ const Dashboard = () => {
       return data;
     },
     enabled: !!user?.id,
-    refetchOnWindowFocus: true, // Refetch when window gains focus
-    refetchInterval: 30000, // Refetch every 30 seconds to catch updates
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000,
   });
 
   const handleSignOut = async () => {
@@ -67,6 +66,14 @@ const Dashboard = () => {
 
   const handleViewMessages = () => {
     navigate('/messages');
+  };
+
+  const handleEditProfile = () => {
+    if (escortProfile) {
+      navigate('/escort-setup');
+    } else {
+      navigate('/membership');
+    }
   };
 
   const getEscortProfileStatus = () => {
@@ -86,8 +93,8 @@ const Dashboard = () => {
     };
     
     if (!isPremium) return { 
-      label: 'Created – Not Yet Listed', 
-      emoji: '✅', 
+      label: 'Created – Payment Required', 
+      emoji: '💳', 
       color: 'bg-orange-100 text-orange-800' 
     };
     
@@ -98,7 +105,7 @@ const Dashboard = () => {
     };
     
     return { 
-      label: 'Listed', 
+      label: 'Active & Listed', 
       emoji: '🌐', 
       color: 'bg-green-100 text-green-800' 
     };
@@ -142,14 +149,52 @@ const Dashboard = () => {
                   <Button
                     variant="outline"
                     className="h-20 flex-col gap-2"
-                    onClick={() => navigate('/profile')}
+                    onClick={handleEditProfile}
                   >
                     <Users className="w-6 h-6" />
-                    Edit Profile
+                    {escortProfile ? 'Edit Escort Profile' : 'Create Escort Profile'}
                   </Button>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Escort Profile Analytics */}
+            {escortProfile && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Escort Profile Analytics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {escortProfile.rating?.toFixed(1) || '0.0'}
+                      </div>
+                      <div className="text-sm text-gray-600">Rating</div>
+                    </div>
+                    
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">
+                        {escortProfile.total_reviews || 0}
+                      </div>
+                      <div className="text-sm text-gray-600">Reviews</div>
+                    </div>
+                    
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">0</div>
+                      <div className="text-sm text-gray-600">This Month</div>
+                    </div>
+
+                    <div className="text-center p-4 bg-orange-50 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {escortProfile.hourly_rate ? `KES ${escortProfile.hourly_rate}` : 'Not Set'}
+                      </div>
+                      <div className="text-sm text-gray-600">Hourly Rate</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Account Stats */}
             <Card>
@@ -184,13 +229,54 @@ const Dashboard = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Become an Escort */}
-            <BecomeEscort />
+            {/* Become an Escort - only show if no escort profile exists */}
+            {!escortProfile && <BecomeEscort />}
             
-            {/* Membership Status */}
-            <div id="payment-section">
-              <MembershipUpgrade />
-            </div>
+            {/* Membership Status - only show if escort profile exists */}
+            {escortProfile && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Membership Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Status</span>
+                      <Badge variant={membership?.status === 'paid' ? 'default' : 'secondary'}>
+                        {membership?.status === 'paid' ? 'Premium' : 'Free'}
+                      </Badge>
+                    </div>
+                    
+                    {membership?.status === 'paid' && membership.expires_at && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Expires</span>
+                        <span className="text-sm font-medium">
+                          {new Date(membership.expires_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Profile Status</span>
+                      <Badge variant="outline" className={escortStatus.color}>
+                        {escortStatus.emoji} {escortStatus.label}
+                      </Badge>
+                    </div>
+
+                    {membership?.status !== 'paid' && (
+                      <div className="pt-3 border-t">
+                        <Button 
+                          onClick={() => navigate('/membership')}
+                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        >
+                          Upgrade to Premium
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Account Actions */}
             <Card>
