@@ -16,6 +16,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import Membership from "./pages/Membership";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/escort/:id" element={<EscortProfile />} />
             <Route path="/escort-setup" element={<EscortSetup />} />
+            <Route path="/membership" element={<Membership />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<Admin />} />

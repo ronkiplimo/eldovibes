@@ -1,13 +1,13 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Star, Users, Shield, Heart, Filter } from 'lucide-react';
+import { Search, MapPin, Star, Users, Shield, Filter } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import EscortCard from '@/components/EscortCard';
+import EscortListings from '@/components/EscortListings';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import { useEscorts, useSearchEscorts } from '@/hooks/useEscorts';
 import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
@@ -49,15 +49,19 @@ const Index = () => {
     setIsSearching(true);
   };
 
-  const handleViewProfile = (id: string) => {
-    navigate(`/escort/${id}`);
-  };
-
   const clearFilters = () => {
     setSearchLocation('');
     setSelectedCategory('');
     setIsSearching(false);
     setAdvancedFilters(null);
+  };
+
+  const handleBecomeEscort = () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    navigate('/membership');
   };
 
   const categories = escortServices.map(cat => ({
@@ -134,6 +138,16 @@ const Index = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Become an Escort CTA */}
+          <div className="mt-8">
+            <Button 
+              onClick={handleBecomeEscort}
+              className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-3"
+            >
+              Become an Escort - Start Earning Today
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -207,53 +221,7 @@ const Index = () => {
             )}
           </div>
           
-          {isLoading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Card key={i} className="animate-pulse">
-                  <div className="h-48 bg-gray-200"></div>
-                  <CardContent className="p-4">
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : escorts && escorts.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {escorts.map((escort) => (
-                <EscortCard
-                  key={escort.id}
-                  id={escort.id}
-                  stageName={escort.stage_name}
-                  age={escort.age || 0}
-                  location={escort.location || 'Location not specified'}
-                  hourlyRate={escort.hourly_rate || 0}
-                  rating={escort.rating}
-                  totalReviews={escort.total_reviews}
-                  verified={escort.verified}
-                  availabilityStatus={escort.availability_status}
-                  category={escort.category || 'General'}
-                  profileImageUrl={escort.profile_image_url || undefined}
-                  phoneNumber={escort.phone_number || undefined}
-                  onViewProfile={handleViewProfile}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                {isSearching ? 'No companions found' : 'No companions available yet'}
-              </h3>
-              <p className="text-gray-500">
-                {isSearching 
-                  ? 'Try adjusting your search criteria' 
-                  : 'Check back soon for amazing companions in your area'
-                }
-              </p>
-            </div>
-          )}
+          <EscortListings escorts={escorts} isLoading={isLoading} />
         </div>
       </section>
 

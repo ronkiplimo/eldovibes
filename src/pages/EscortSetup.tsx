@@ -1,278 +1,246 @@
+
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { AlertCircle, CheckCircle, Save, ArrowLeft, Upload } from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import ImageUpload from '@/components/ImageUpload';
+import MembershipGuard from '@/components/MembershipGuard';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembership } from '@/hooks/useMembership';
-import { supabase } from '@/integrations/supabase/client';
+import { validateHourlyRate } from '@/hooks/useEscorts';
 import { useToast } from '@/hooks/use-toast';
-import Navbar from '@/components/Navbar';
-import { Heart, Shield, Camera, DollarSign, MapPin, Clock, AlertTriangle, CheckCircle, CreditCard, ArrowLeft } from 'lucide-react';
-import { getAllServices } from '@/utils/escortServices';
 import { eldoretLocations } from '@/utils/locations';
+import { escortServices } from '@/utils/escortServices';
 
 const EscortSetup = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: membership } = useMembership();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [formData, setFormData] = useState({
-    stage_name: '',
-    bio: '',
-    age: '',
-    hourly_rate: '',
-    location: '',
-    phone_number: '',
-    category: '',
-    services_offered: [] as string[],
-    profile_image_url: ''
-  });
+  // Form state
+  const [stageName, setStageName] = useState('');
+  const [bio, setBio] = useState('');
+  const [age, setAge] = useState('');
+  const [hourlyRate, setHourlyRate] = useState('');
+  const [location, setLocation] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [category, setCategory] = useState('');
+  const [servicesOffered, setServicesOffered] = useState<string[]>([]);
+  const [profileImageUrl, setProfileImageUrl] = useState('');
+  const [availabilityStatus, setAvailabilityStatus] = useState('available');
 
-  // Fetch existing escort profile with better error handling
-  const { data: escortProfile, isLoading, error, refetch } = useQuery({
+  // Fetch existing escort profile
+  const { data: escortProfile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['escort-profile-setup', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       
-      console.log('EscortSetup fetching profile for user:', user.id);
-      
+      console.log('Fetching escort profile for user:', user.id);
       const { data, error } = await supabase
         .from('escort_profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
       
-      if (error && error.code !== 'PGRST116') {
-        console.error('EscortSetup profile fetch error:', error);
+      if (error) {
+        console.error('Error fetching escort profile:', error);
+        if (error.code === 'PGRST116') {
+          return null;
+        }
         throw error;
       }
       
-      console.log('EscortSetup profile data:', data);
+      console.log('Escort profile data:', data);
       return data;
     },
-    enabled: !!user?.id,
-    retry: (failureCount, error: any) => {
-      // Retry up to 3 times, but not for PGRST116 (no rows found)
-      if (error?.code === 'PGRST116') return false;
-      return failureCount < 3;
-    },
-    retryDelay: 1000,
+    enabled: !!user?.id
   });
 
-  // Populate form with existing data
+  // Update form when profile loads
   useEffect(() => {
     if (escortProfile) {
-      console.log('Populating form with profile data:', escortProfile);
-      setFormData({
-        stage_name: escortProfile.stage_name || '',
-        bio: escortProfile.bio || '',
-        age: escortProfile.age?.toString() || '',
-        hourly_rate: escortProfile.hourly_rate?.toString() || '',
-        location: escortProfile.location || '',
-        phone_number: escortProfile.phone_number || '',
-        category: escortProfile.category || '',
-        services_offered: escortProfile.services_offered || [],
-        profile_image_url: escortProfile.profile_image_url || ''
-      });
+      setStageName(escortProfile.stage_name || '');
+      setBio(escortProfile.bio || '');
+      setAge(escortProfile.age?.toString() || '');
+      setHourlyRate(escortProfile.hourly_rate?.toString() || '');
+      setLocation(escortProfile.location || '');
+      setPhoneNumber(escortProfile.phone_number || '');
+      setCategory(escortProfile.category || '');
+      setServicesOffered(escortProfile.services_offered || []);
+      setProfileImageUrl(escortProfile.profile_image_url || '');
+      setAvailabilityStatus(escortProfile.availability_status || 'available');
     }
   }, [escortProfile]);
 
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+  // Save profile mutation
+  const saveProfileMutation = useMutation({
+    mutationFn: async (profileData: any) => {
       if (!user?.id) throw new Error('User not authenticated');
       
-      console.log('Updating escort profile with data:', data);
+      console.log('Saving escort profile:', profileData);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('escort_profiles')
-        .update({
-          stage_name: data.stage_name,
-          bio: data.bio,
-          age: parseInt(data.age),
-          hourly_rate: parseInt(data.hourly_rate),
-          location: data.location,
-          phone_number: data.phone_number,
-          category: data.category,
-          services_offered: data.services_offered,
-          profile_image_url: data.profile_image_url,
+        .upsert({
+          user_id: user.id,
+          stage_name: profileData.stageName,
+          bio: profileData.bio,
+          age: profileData.age ? parseInt(profileData.age) : null,
+          hourly_rate: profileData.hourlyRate ? parseFloat(profileData.hourlyRate) : null,
+          location: profileData.location,
+          phone_number: profileData.phoneNumber,
+          category: profileData.category,
+          services_offered: profileData.servicesOffered,
+          profile_image_url: profileData.profileImageUrl,
+          availability_status: profileData.availabilityStatus,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', user.id);
+        .select()
+        .single();
 
       if (error) {
-        console.error('Profile update error:', error);
+        console.error('Error saving escort profile:', error);
         throw error;
       }
+      
+      console.log('Profile saved successfully:', data);
+      return data;
     },
     onSuccess: () => {
-      console.log('Profile updated successfully');
+      queryClient.invalidateQueries({ queryKey: ['escort-profile'] });
       queryClient.invalidateQueries({ queryKey: ['escort-profile-setup'] });
-      queryClient.invalidateQueries({ queryKey: ['escort-profile', user?.id] });
       toast({
-        title: 'Profile Updated!',
-        description: 'Your escort profile has been saved successfully.',
+        title: 'Profile Saved!',
+        description: 'Your escort profile has been updated successfully.',
       });
     },
-    onError: (error) => {
-      console.error('Profile update mutation error:', error);
+    onError: (error: any) => {
+      console.error('Failed to save profile:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update profile. Please try again.',
+        description: 'Failed to save profile. Please try again.',
         variant: 'destructive'
       });
     }
   });
 
-  const handleServiceToggle = (serviceId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      services_offered: prev.services_offered.includes(serviceId)
-        ? prev.services_offered.filter(s => s !== serviceId)
-        : [...prev.services_offered, serviceId]
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.stage_name || !formData.bio || !formData.age || !formData.hourly_rate) {
+  const handleSave = async () => {
+    // Validation
+    if (!stageName.trim()) {
       toast({
-        title: 'Missing Information',
-        description: 'Please fill in all required fields.',
+        title: 'Validation Error',
+        description: 'Stage name is required.',
         variant: 'destructive'
       });
       return;
     }
 
-    updateProfileMutation.mutate(formData);
+    if (hourlyRate && !validateHourlyRate(parseFloat(hourlyRate))) {
+      toast({
+        title: 'Validation Error',
+        description: 'Hourly rate must be between KES 500 and KES 10,000.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    await saveProfileMutation.mutateAsync({
+      stageName,
+      bio,
+      age,
+      hourlyRate,
+      location,
+      phoneNumber,
+      category,
+      servicesOffered,
+      profileImageUrl,
+      availabilityStatus
+    });
   };
 
-  const getProfileStatus = () => {
-    if (!escortProfile) return { 
-      status: 'not_created', 
-      label: 'Not Created', 
-      color: 'gray', 
-      description: 'Profile not found',
-      emoji: '❌'
-    };
-    
-    const isComplete = escortProfile.stage_name && escortProfile.bio && escortProfile.age && escortProfile.hourly_rate;
-    const isPremium = membership?.status === 'paid';
-    
-    if (!isComplete) return { 
-      status: 'incomplete', 
-      label: 'Created – Setup Required', 
-      color: 'yellow', 
-      description: 'Complete all required fields to proceed',
-      emoji: '✅'
-    };
-    
-    if (!isPremium) return { 
-      status: 'needs_premium', 
-      label: 'Created – Not Yet Listed', 
-      color: 'orange', 
-      description: 'Upgrade to Premium to publish your profile',
-      emoji: '✅'
-    };
-    
-    if (!escortProfile.verified) return { 
-      status: 'pending', 
-      label: 'Pending Approval', 
-      color: 'blue', 
-      description: 'Your profile is under admin review',
-      emoji: '🕓'
-    };
-    
-    return { 
-      status: 'live', 
-      label: 'Listed', 
-      color: 'green', 
-      description: 'Your profile is active and visible to clients',
-      emoji: '🌐'
-    };
+  const handleServiceToggle = (serviceId: string) => {
+    setServicesOffered(prev => 
+      prev.includes(serviceId) 
+        ? prev.filter(s => s !== serviceId)
+        : [...prev, serviceId]
+    );
   };
 
-  const isProfileComplete = () => {
-    return formData.stage_name && formData.bio && formData.age && formData.hourly_rate && formData.location;
-  };
+  const isProfileComplete = stageName && bio && age && hourlyRate;
+  const isPaidMember = membership?.status === 'paid';
 
-  const profileStatus = getProfileStatus();
-  const isPremium = membership?.status === 'paid';
-  const allServices = getAllServices();
+  if (!user) {
+    navigate('/auth');
+    return null;
+  }
 
-  if (isLoading) {
+  if (profileLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-48 mb-8"></div>
-            <div className="space-y-4">
-              <div className="h-32 bg-gray-200 rounded"></div>
-              <div className="h-32 bg-gray-200 rounded"></div>
-            </div>
-          </div>
+          <div className="animate-pulse">Loading...</div>
         </div>
       </div>
     );
   }
 
-  if (error && error.code !== 'PGRST116') {
+  if (profileError && profileError.code !== 'PGRST116') {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <Alert className="mb-6">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              Failed to load escort profile. Please try again.
-            </AlertDescription>
-          </Alert>
-          <div className="flex gap-4">
-            <Button onClick={() => navigate('/dashboard')} variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-            <Button onClick={() => refetch()}>
-              Try Again
-            </Button>
-          </div>
+          <Card>
+            <CardContent className="p-6 text-center">
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Profile</h2>
+              <p className="text-gray-600 mb-4">There was an error loading your escort profile.</p>
+              <Button onClick={() => navigate('/dashboard')}>
+                Back to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
 
-  if (!escortProfile) {
+  if (!isPaidMember) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <MembershipGuard />
+      </div>
+    );
+  }
+
+  if (!escortProfile && !profileError) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <Alert className="mb-6">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              No escort profile found. Please go back to the dashboard and click "Create Escort Profile" first.
-            </AlertDescription>
-          </Alert>
-          <div className="flex gap-4">
-            <Button onClick={() => navigate('/dashboard')} variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-            <Button onClick={() => refetch()}>
-              Check Again
-            </Button>
-          </div>
+          <Card>
+            <CardContent className="p-6 text-center">
+              <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-orange-600 mb-2">No Escort Profile Found</h2>
+              <p className="text-gray-600 mb-4">You need to create an escort profile first.</p>
+              <Button onClick={() => navigate('/dashboard')}>
+                Back to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -283,253 +251,254 @@ const EscortSetup = () => {
       <Navbar />
       
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Escort Profile Setup</h1>
-          <p className="text-gray-600">Complete your profile to start connecting with clients</p>
-          
-          <div className="flex items-center gap-2 mt-4">
-            <Badge 
-              variant={profileStatus.color === 'green' ? 'default' : 'secondary'}
-              className={`
-                ${profileStatus.color === 'yellow' ? 'bg-yellow-100 text-yellow-800' : ''}
-                ${profileStatus.color === 'blue' ? 'bg-blue-100 text-blue-800' : ''}
-                ${profileStatus.color === 'orange' ? 'bg-orange-100 text-orange-800' : ''}
-                ${profileStatus.color === 'gray' ? 'bg-gray-100 text-gray-800' : ''}
-                ${profileStatus.color === 'green' ? 'bg-green-100 text-green-800' : ''}
-              `}
-            >
-              {profileStatus.emoji} Profile Status: {profileStatus.label}
-            </Badge>
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Escort Profile Setup</h1>
+            <p className="text-gray-600">Complete your profile to start accepting bookings</p>
           </div>
-          <p className="text-sm text-gray-600 mt-2">{profileStatus.description}</p>
         </div>
 
-        {/* Premium Upgrade Alert */}
-        {isProfileComplete() && !isPremium && (
-          <Alert className="mb-6 border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50">
-            <CreditCard className="h-4 w-4 text-orange-600" />
-            <AlertDescription className="text-orange-800">
-              <div className="flex items-center justify-between">
+        {/* Status Card */}
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {isProfileComplete ? (
+                  <CheckCircle className="w-6 h-6 text-green-500" />
+                ) : (
+                  <AlertCircle className="w-6 h-6 text-orange-500" />
+                )}
                 <div>
-                  <strong>🎉 Profile Ready! Upgrade to Premium to Go Live!</strong>
-                  <p className="text-sm mt-1">
-                    Your escort profile is complete. Upgrade to Premium for KES 800/month to publish it and start earning.
+                  <h3 className="font-semibold">
+                    Profile Status: {isProfileComplete ? 'Complete' : 'Incomplete'}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {isProfileComplete 
+                      ? 'Your profile is complete and ready for review'
+                      : 'Complete all required fields to activate your profile'
+                    }
                   </p>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="ml-4 border-orange-300 text-orange-800 hover:bg-orange-100"
-                  onClick={() => navigate('/dashboard')}
-                >
-                  Upgrade Now
-                </Button>
               </div>
-            </AlertDescription>
-          </Alert>
-        )}
+              <Badge variant={isProfileComplete ? 'default' : 'secondary'}>
+                {isProfileComplete ? 'Ready' : 'In Progress'}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Profile Complete but waiting for approval */}
-        {isPremium && profileStatus.status === 'pending' && (
-          <Alert className="mb-6 border-blue-200 bg-blue-50">
-            <Clock className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800">
-              <strong>Under Review:</strong> Your profile is complete and payment confirmed. 
-              Our team is reviewing your profile and will approve it within 24 hours.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Profile is live */}
-        {profileStatus.status === 'live' && (
-          <Alert className="mb-6 border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              <strong>🌐 Congratulations!</strong> Your escort profile is now live and visible to clients. 
-              You can start receiving bookings and messages.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Form */}
+          <div className="lg:col-span-2 space-y-6">
             {/* Basic Information */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Heart className="w-5 h-5 text-purple-600" />
-                  Basic Information
-                </CardTitle>
+                <CardTitle>Basic Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="stage_name">Stage Name *</Label>
+                  <Label htmlFor="stageName">Stage Name *</Label>
                   <Input
-                    id="stage_name"
-                    value={formData.stage_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, stage_name: e.target.value }))}
-                    placeholder="Your professional name"
+                    id="stageName"
+                    value={stageName}
+                    onChange={(e) => setStageName(e.target.value)}
+                    placeholder="Enter your stage name"
                     required
                   />
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="age">Age *</Label>
-                  <Input
-                    id="age"
-                    type="number"
-                    min="18"
-                    max="65"
-                    value={formData.age}
-                    onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
-                    placeholder="Your age"
+                  <Label htmlFor="bio">Bio/Description *</Label>
+                  <Textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Tell clients about yourself, your services, and what makes you special"
+                    rows={4}
                     required
                   />
                 </div>
-                
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="age">Age *</Label>
+                    <Input
+                      id="age"
+                      type="number"
+                      value={age}
+                      onChange={(e) => setAge(e.target.value)}
+                      placeholder="Your age"
+                      min="18"
+                      max="65"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="hourlyRate">Hourly Rate (KES) *</Label>
+                    <Input
+                      id="hourlyRate"
+                      type="number"
+                      value={hourlyRate}
+                      onChange={(e) => setHourlyRate(e.target.value)}
+                      placeholder="500 - 10000"
+                      min="500"
+                      max="10000"
+                      required
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contact & Location */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact & Location</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="location">Location *</Label>
-                  <Select value={formData.location} onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}>
+                  <Label htmlFor="phoneNumber">Phone Number</Label>
+                  <Input
+                    id="phoneNumber"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="Your contact number"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="location">Location</Label>
+                  <Select value={location} onValueChange={setLocation}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select your location" />
                     </SelectTrigger>
                     <SelectContent>
-                      {eldoretLocations.map((location) => (
-                        <SelectItem key={location} value={location}>
-                          {location}
+                      {eldoretLocations.map((loc) => (
+                        <SelectItem key={loc} value={loc}>
+                          {loc}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                
-                <div>
-                  <Label htmlFor="phone_number">Phone Number</Label>
-                  <Input
-                    id="phone_number"
-                    type="tel"
-                    value={formData.phone_number}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone_number: e.target.value }))}
-                    placeholder="+254..."
-                  />
-                </div>
               </CardContent>
             </Card>
 
-            {/* Professional Details */}
+            {/* Services & Category */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-green-600" />
-                  Professional Details
-                </CardTitle>
+                <CardTitle>Services & Category</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="hourly_rate">Hourly Rate (KES) *</Label>
-                  <Input
-                    id="hourly_rate"
-                    type="number"
-                    min="1000"
-                    step="100"
-                    value={formData.hourly_rate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, hourly_rate: e.target.value }))}
-                    placeholder="5000"
-                    required
-                  />
-                </div>
-                
-                <div>
                   <Label htmlFor="category">Category</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                  <Select value={category} onValueChange={setCategory}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder="Select your category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="premium">Premium</SelectItem>
-                      <SelectItem value="standard">Standard</SelectItem>
-                      <SelectItem value="luxury">Luxury</SelectItem>
+                      {escortServices.map((service) => (
+                        <SelectItem key={service.id} value={service.id}>
+                          {service.emoji} {service.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="profile_image_url">Profile Image URL</Label>
-                  <Input
-                    id="profile_image_url"
-                    type="url"
-                    value={formData.profile_image_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, profile_image_url: e.target.value }))}
-                    placeholder="https://..."
-                  />
+                  <Label>Services Offered</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {escortServices.map((service) => (
+                      <div key={service.id} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={service.id}
+                          checked={servicesOffered.includes(service.id)}
+                          onChange={() => handleServiceToggle(service.id)}
+                          className="rounded"
+                        />
+                        <label htmlFor={service.id} className="text-sm">
+                          {service.emoji} {service.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Profile Photo */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Photo</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ImageUpload
+                  value={profileImageUrl}
+                  onChange={setProfileImageUrl}
+                  bucket="profile-images"
+                />
               </CardContent>
             </Card>
           </div>
 
-          {/* Bio */}
-          <Card>
-            <CardHeader>
-              <CardTitle>About You</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <Label htmlFor="bio">Bio / Description *</Label>
-                <Textarea
-                  id="bio"
-                  value={formData.bio}
-                  onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                  placeholder="Tell potential clients about yourself, your personality, and what makes you special..."
-                  rows={4}
-                  required
-                />
-              </div>
-            </CardContent>
-          </Card>
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Availability */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Availability Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select value={availabilityStatus} onValueChange={setAvailabilityStatus}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="busy">Busy</SelectItem>
+                    <SelectItem value="offline">Offline</SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
 
-          {/* Services */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Services Offered</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {allServices.map((service) => (
-                  <div key={service.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={service.id}
-                      checked={formData.services_offered.includes(service.id)}
-                      onCheckedChange={() => handleServiceToggle(service.id)}
-                    />
-                    <Label htmlFor={service.id} className="text-sm">
-                      {service.name}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+            {/* Save Button */}
+            <Card>
+              <CardContent className="p-6">
+                <Button 
+                  onClick={handleSave}
+                  disabled={saveProfileMutation.isPending}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {saveProfileMutation.isPending ? 'Saving...' : 'Save Profile'}
+                </Button>
+              </CardContent>
+            </Card>
 
-          {/* Actions */}
-          <div className="flex gap-4">
-            <Button
-              type="submit"
-              disabled={updateProfileMutation.isPending}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              {updateProfileMutation.isPending ? 'Saving...' : 'Save Profile'}
-            </Button>
-            
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/dashboard')}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
+            {/* Profile Guidelines */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Guidelines</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-gray-600 space-y-2">
+                <p>• Use a clear, professional profile photo</p>
+                <p>• Write a detailed, honest bio</p>
+                <p>• Set competitive but realistic rates</p>
+                <p>• Keep your availability status updated</p>
+                <p>• Respond promptly to messages</p>
+              </CardContent>
+            </Card>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

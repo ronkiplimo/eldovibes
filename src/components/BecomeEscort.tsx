@@ -35,7 +35,7 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
         .from('escort_profiles')
         .insert({
           user_id: user.id,
-          stage_name: 'New Escort', // Default stage name
+          stage_name: 'New Escort',
           bio: null,
           age: null,
           hourly_rate: null,
@@ -62,7 +62,6 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
     },
     onSuccess: (data) => {
       console.log('Profile creation successful, invalidating queries');
-      // Invalidate all related queries to refresh the UI
       queryClient.invalidateQueries({ queryKey: ['escort-profile'] });
       queryClient.invalidateQueries({ queryKey: ['escort-profile-setup'] });
       
@@ -71,7 +70,6 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
         description: 'Your escort profile has been created successfully. Complete your setup to get started.',
       });
       
-      // Navigate to setup page
       navigate('/escort-setup');
     },
     onError: (error: any) => {
@@ -106,8 +104,13 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
       return;
     }
 
+    // Check membership status first
+    if (membership?.status !== 'paid') {
+      navigate('/membership');
+      return;
+    }
+
     if (escortProfile) {
-      // Profile already exists, just navigate to setup
       navigate('/escort-setup');
       return;
     }
@@ -121,9 +124,18 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
   };
 
   const getStatusDisplay = () => {
+    if (!membership || membership.status !== 'paid') {
+      return {
+        label: 'Premium Membership Required',
+        color: 'bg-orange-100 text-orange-800',
+        icon: CreditCard,
+        description: 'Upgrade to Premium to create your escort profile'
+      };
+    }
+
     if (!escortProfile) {
       return {
-        label: 'Not Created',
+        label: 'Profile Not Created',
         color: 'bg-gray-100 text-gray-800',
         icon: AlertTriangle,
         description: 'Create your escort profile to get started'
@@ -131,23 +143,13 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
     }
 
     const isComplete = escortProfile.stage_name && escortProfile.bio && escortProfile.age && escortProfile.hourly_rate;
-    const isPremium = membership?.status === 'paid';
 
     if (!isComplete) {
       return {
-        label: 'Created – Setup Required',
+        label: 'Setup Required',
         color: 'bg-yellow-100 text-yellow-800',
         icon: AlertTriangle,
-        description: 'Complete your profile setup to proceed'
-      };
-    }
-
-    if (!isPremium) {
-      return {
-        label: 'Created – Not Yet Listed',
-        color: 'bg-orange-100 text-orange-800',
-        icon: CreditCard,
-        description: 'Upgrade to Premium to list your profile'
+        description: 'Complete your profile setup to go live'
       };
     }
 
@@ -161,7 +163,7 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
     }
 
     return {
-      label: 'Listed',
+      label: 'Live & Active',
       color: 'bg-green-100 text-green-800',
       icon: CheckCircle,
       description: 'Your profile is live and accepting bookings'
@@ -170,6 +172,7 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
 
   const status = getStatusDisplay();
   const StatusIcon = status.icon;
+  const isPaidMember = membership?.status === 'paid';
 
   return (
     <Card>
@@ -183,13 +186,21 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
         <div className="flex items-center gap-2">
           <Badge className={`${status.color}`}>
             <StatusIcon className="w-3 h-3 mr-1" />
-            Status: {status.label}
+            {status.label}
           </Badge>
         </div>
         
         <p className="text-sm text-gray-600">{status.description}</p>
 
-        {!escortProfile ? (
+        {!isPaidMember ? (
+          <Button 
+            onClick={() => navigate('/membership')}
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          >
+            <CreditCard className="w-4 h-4 mr-2" />
+            Upgrade to Premium - KES 800/month
+          </Button>
+        ) : !escortProfile ? (
           <Button 
             onClick={handleCreateProfile}
             disabled={isCreating || createEscortProfileMutation.isPending}
@@ -198,30 +209,13 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
             {isCreating || createEscortProfileMutation.isPending ? 'Creating...' : 'Create Escort Profile'}
           </Button>
         ) : (
-          <div className="space-y-2">
-            <Button 
-              onClick={() => navigate('/escort-setup')}
-              className="w-full"
-              variant="outline"
-            >
-              {status.label === 'Created – Setup Required' ? 'Complete Setup' : 'Edit Profile'}
-            </Button>
-            
-            {status.label === 'Created – Not Yet Listed' && (
-              <Button 
-                onClick={() => {
-                  const paymentSection = document.getElementById('payment-section');
-                  if (paymentSection) {
-                    paymentSection.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-              >
-                <CreditCard className="w-4 h-4 mr-2" />
-                Upgrade to Premium
-              </Button>
-            )}
-          </div>
+          <Button 
+            onClick={() => navigate('/escort-setup')}
+            className="w-full"
+            variant="outline"
+          >
+            {status.label === 'Setup Required' ? 'Complete Setup' : 'Edit Profile'}
+          </Button>
         )}
       </CardContent>
     </Card>

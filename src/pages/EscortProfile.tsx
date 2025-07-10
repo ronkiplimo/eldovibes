@@ -175,7 +175,7 @@ const EscortProfile = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Booking Card */}
+            {/* Contact & Booking Card */}
             <Card>
               <CardHeader>
                 <CardTitle>Contact & Book</CardTitle>
@@ -209,6 +209,19 @@ const EscortProfile = () => {
                     Call Now
                   </Button>
                 )}
+
+                <div className="text-xs text-gray-500 text-center pt-2">
+                  {!user && (
+                    <p>
+                      <button 
+                        onClick={() => navigate('/auth')} 
+                        className="text-purple-600 hover:underline"
+                      >
+                        Login
+                      </button> to send messages and book appointments
+                    </p>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
