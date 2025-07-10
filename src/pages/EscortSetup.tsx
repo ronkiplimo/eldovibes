@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -122,14 +121,14 @@ const EscortSetup = () => {
       queryClient.invalidateQueries({ queryKey: ['escort-profile-setup'] });
       toast({
         title: 'Profile Saved!',
-        description: 'Your escort profile has been updated successfully.',
+        description: 'Your escort profile has been saved as draft.',
       });
       
       // If not paid, redirect to membership page
       if (membership?.status !== 'paid') {
         toast({
           title: 'Complete Your Setup',
-          description: 'Please upgrade to Premium to activate your profile.',
+          description: 'Please upgrade to Premium to make your profile visible to clients.',
         });
         setTimeout(() => {
           navigate('/membership');
@@ -254,23 +253,29 @@ const EscortSetup = () => {
                 <AlertCircle className={`w-6 h-6 ${isProfileComplete ? 'text-green-500' : 'text-orange-500'}`} />
                 <div>
                   <h3 className="font-semibold">
-                    {isProfileComplete ? 'Profile Complete' : 'Profile Incomplete'}
+                    {escortProfile 
+                      ? (isPaidMember && isProfileComplete ? 'Profile Active' : 'Profile Draft') 
+                      : 'New Profile'
+                    }
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {isPaidMember 
-                      ? (isProfileComplete ? 'Your profile is active and listed' : 'Complete all fields to activate')
-                      : (isProfileComplete ? 'Complete payment to activate your profile' : 'Complete profile, then upgrade to Premium')
+                    {!isProfileComplete 
+                      ? 'Complete all required fields to save your profile'
+                      : (!isPaidMember 
+                          ? 'Profile saved as draft. Upgrade to Premium to make it visible.'
+                          : 'Your profile is live and visible to clients'
+                        )
                     }
                   </p>
                 </div>
               </div>
               <div className="flex gap-2">
                 <Badge variant={isProfileComplete ? 'default' : 'secondary'}>
-                  {isProfileComplete ? 'Complete' : 'In Progress'}
+                  {isProfileComplete ? 'Complete' : 'Incomplete'}
                 </Badge>
-                {isPaidMember && (
-                  <Badge className="bg-green-100 text-green-800">
-                    Premium
+                {escortProfile && (
+                  <Badge variant={isPaidMember ? 'default' : 'outline'}>
+                    {isPaidMember ? 'Live' : 'Draft'}
                   </Badge>
                 )}
               </div>
@@ -468,7 +473,7 @@ const EscortSetup = () => {
                   {saveProfileMutation.isPending ? 'Saving...' : 'Save Profile'}
                 </Button>
                 
-                {!isPaidMember && isProfileComplete && (
+                {isProfileComplete && !isPaidMember && (
                   <Button 
                     onClick={() => navigate('/membership')}
                     variant="outline"
@@ -491,6 +496,7 @@ const EscortSetup = () => {
                 <p>• Set competitive but realistic rates</p>
                 <p>• Keep your availability status updated</p>
                 <p>• Respond promptly to messages</p>
+                <p>• Complete payment to make profile visible</p>
               </CardContent>
             </Card>
           </div>

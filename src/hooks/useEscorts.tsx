@@ -36,9 +36,11 @@ export const useEscorts = () => {
   return useQuery({
     queryKey: ['escorts'],
     queryFn: async () => {
+      // Only fetch verified profiles for public listing
       const { data, error } = await supabase
         .from('escort_profiles')
         .select('*')
+        .eq('verified', true)
         .order('rating', { ascending: false });
 
       if (error) throw error;
@@ -53,7 +55,8 @@ export const useSearchEscorts = (location?: string, category?: string) => {
     queryFn: async () => {
       let query = supabase
         .from('escort_profiles')
-        .select('*');
+        .select('*')
+        .eq('verified', true); // Only show verified profiles
 
       if (location) {
         query = query.ilike('location', `%${location}%`);

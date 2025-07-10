@@ -20,9 +20,18 @@ const EscortListings = ({ escorts, isLoading }: EscortListingsProps) => {
     navigate(`/escort/${id}`);
   };
 
-  const handlePhoneCall = (phoneNumber: string | null) => {
-    if (phoneNumber) {
-      window.location.href = `tel:${phoneNumber}`;
+  const handlePhoneCall = async (escortId: string) => {
+    try {
+      // Fetch the escort's full profile to get phone number
+      const escort = escorts.find(e => e.id === escortId);
+      if (escort?.phone_number) {
+        // Open phone app with the number
+        window.location.href = `tel:${escort.phone_number}`;
+      } else {
+        console.log('Phone number not available');
+      }
+    } catch (error) {
+      console.error('Error accessing phone number:', error);
     }
   };
 
@@ -150,10 +159,11 @@ const EscortListings = ({ escorts, isLoading }: EscortListingsProps) => {
               </Button>
               {escort.phone_number && (
                 <Button
-                  onClick={() => handlePhoneCall(escort.phone_number)}
+                  onClick={() => handlePhoneCall(escort.id)}
                   variant="outline"
                   size="icon"
                   className="shrink-0"
+                  title="Call Now"
                 >
                   <Phone className="w-4 h-4" />
                 </Button>
@@ -163,6 +173,7 @@ const EscortListings = ({ escorts, isLoading }: EscortListingsProps) => {
                 variant="outline"
                 size="icon"
                 className="shrink-0"
+                title="Send Message"
               >
                 <MessageCircle className="w-4 h-4" />
               </Button>
