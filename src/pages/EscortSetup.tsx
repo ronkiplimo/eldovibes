@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -40,7 +39,7 @@ const EscortSetup = () => {
   });
 
   // Fetch existing escort profile with better error handling
-  const { data: escortProfile, isLoading, error } = useQuery({
+  const { data: escortProfile, isLoading, error, refetch } = useQuery({
     queryKey: ['escort-profile-setup', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -62,8 +61,12 @@ const EscortSetup = () => {
       return data;
     },
     enabled: !!user?.id,
-    retry: 3, // Retry up to 3 times
-    retryDelay: 1000, // Wait 1 second between retries
+    retry: (failureCount, error: any) => {
+      // Retry up to 3 times, but not for PGRST116 (no rows found)
+      if (error?.code === 'PGRST116') return false;
+      return failureCount < 3;
+    },
+    retryDelay: 1000,
   });
 
   // Populate form with existing data
@@ -225,7 +228,7 @@ const EscortSetup = () => {
     );
   }
 
-  if (error || !escortProfile) {
+  if (error && error.code !== 'PGRST116') {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -233,7 +236,7 @@ const EscortSetup = () => {
           <Alert className="mb-6">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              {error ? 'Failed to load escort profile. Please try again.' : 'No escort profile found. Please go back to the dashboard and click "Become an Escort" to create your profile.'}
+              Failed to load escort profile. Please try again.
             </AlertDescription>
           </Alert>
           <div className="flex gap-4">
@@ -241,11 +244,34 @@ const EscortSetup = () => {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Button>
-            {error && (
-              <Button onClick={() => window.location.reload()}>
-                Try Again
-              </Button>
-            )}
+            <Button onClick={() => refetch()}>
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!escortProfile) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <Alert className="mb-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              No escort profile found. Please go back to the dashboard and click "Create Escort Profile" first.
+            </AlertDescription>
+          </Alert>
+          <div className="flex gap-4">
+            <Button onClick={() => navigate('/dashboard')} variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <Button onClick={() => refetch()}>
+              Check Again
+            </Button>
           </div>
         </div>
       </div>
