@@ -2,6 +2,7 @@
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -44,7 +45,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Handle page visibility change to detect when user returns
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Check if we're on a valid route, if not redirect to home
+        const currentPath = window.location.pathname;
+        const validPaths = ['/', '/auth', '/dashboard', '/admin', '/messages', '/escort-setup', '/membership', '/privacy', '/terms', '/blog'];
+        const isValidPath = validPaths.some(path => currentPath.startsWith(path)) || currentPath.match(/^\/escort\/[^/]+$/);
+        
+        if (!isValidPath) {
+          window.location.href = '/';
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
@@ -75,6 +95,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
+    // Navigate to home after sign out
+    if (!error) {
+      window.location.href = '/';
+    }
     return { error };
   };
 

@@ -4,7 +4,7 @@ import { useMembership } from '@/hooks/useMembership';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, MessageSquare, Settings } from 'lucide-react';
+import { Users, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import BecomeEscort from '@/components/BecomeEscort';
@@ -62,13 +62,14 @@ const Dashboard = () => {
 
   const handleSignOut = async () => {
     await signOut();
+    navigate('/');
   };
 
   const handleViewMessages = () => {
     navigate('/messages');
   };
 
-  const handleEditProfile = () => {
+  const handleManageProfile = () => {
     if (escortProfile) {
       navigate('/escort-setup');
     } else {
@@ -92,13 +93,13 @@ const Dashboard = () => {
       color: 'bg-yellow-100 text-yellow-800' 
     };
     
-    if (!isPremium) return { 
+    if (!isPremium && !escortProfile.verified) return { 
       label: 'Created – Payment Required', 
       emoji: '💳', 
       color: 'bg-orange-100 text-orange-800' 
     };
     
-    if (!escortProfile.verified) return { 
+    if (!escortProfile.verified && isPremium) return { 
       label: 'Pending Approval', 
       emoji: '🕓', 
       color: 'bg-blue-100 text-blue-800' 
@@ -131,7 +132,6 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5" />
                   Quick Actions
                 </CardTitle>
               </CardHeader>
@@ -149,10 +149,10 @@ const Dashboard = () => {
                   <Button
                     variant="outline"
                     className="h-20 flex-col gap-2"
-                    onClick={handleEditProfile}
+                    onClick={handleManageProfile}
                   >
                     <Users className="w-6 h-6" />
-                    {escortProfile ? 'Edit Escort Profile' : 'Create Escort Profile'}
+                    {escortProfile ? 'Manage Profile' : 'Create Profile'}
                   </Button>
                 </div>
               </CardContent>
@@ -232,21 +232,28 @@ const Dashboard = () => {
             {/* Become an Escort - only show if no escort profile exists */}
             {!escortProfile && <BecomeEscort />}
             
-            {/* Membership Status - only show if escort profile exists */}
+            {/* Profile Status - only show if escort profile exists */}
             {escortProfile && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Membership Status</CardTitle>
+                  <CardTitle>Profile Status</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Status</span>
+                      <span className="text-sm text-gray-600">Profile Status</span>
+                      <Badge variant="outline" className={escortStatus.color}>
+                        {escortStatus.emoji} {escortStatus.label}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Membership</span>
                       <Badge variant={membership?.status === 'paid' ? 'default' : 'secondary'}>
                         {membership?.status === 'paid' ? 'Premium' : 'Free'}
                       </Badge>
                     </div>
-                    
+
                     {membership?.status === 'paid' && membership.expires_at && (
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Expires</span>
@@ -255,21 +262,14 @@ const Dashboard = () => {
                         </span>
                       </div>
                     )}
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Profile Status</span>
-                      <Badge variant="outline" className={escortStatus.color}>
-                        {escortStatus.emoji} {escortStatus.label}
-                      </Badge>
-                    </div>
 
-                    {membership?.status !== 'paid' && (
+                    {!escortProfile.verified && membership?.status !== 'paid' && (
                       <div className="pt-3 border-t">
                         <Button 
                           onClick={() => navigate('/membership')}
                           className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                         >
-                          Upgrade to Premium
+                          Complete Payment
                         </Button>
                       </div>
                     )}

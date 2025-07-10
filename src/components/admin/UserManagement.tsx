@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Shield, Ban, CheckCircle, UserCheck, UserX, Heart, HeartOff } from 'lucide-react';
+import { Search, Shield, Ban, CheckCircle, UserCheck, UserX, Heart, HeartOff, Crown, CrownOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLogActivity } from '@/hooks/useAdmin';
 
@@ -180,27 +180,27 @@ const UserManagement = () => {
     }
   });
 
-  const toggleEscortActiveMutation = useMutation({
-    mutationFn: async ({ escortId, isActive }: { escortId: string; isActive: boolean }) => {
+  const adminActivateEscortMutation = useMutation({
+    mutationFn: async ({ escortId, verified }: { escortId: string; verified: boolean }) => {
       const { error } = await supabase
         .from('escort_profiles')
-        .update({ is_active: !isActive })
+        .update({ verified: !verified, is_active: !verified })
         .eq('id', escortId);
       
       if (error) throw error;
-      return { escortId, newStatus: !isActive };
+      return { escortId, newStatus: !verified };
     },
     onSuccess: ({ escortId, newStatus }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       logActivity.mutate({
-        action_type: 'escort_update',
+        action_type: 'escort_admin_override',
         target_type: 'escort_profile',
         target_id: escortId,
-        description: `${newStatus ? 'Activated' : 'Deactivated'} escort profile`,
+        description: `Admin ${newStatus ? 'activated' : 'deactivated'} escort profile without payment`,
       });
       toast({
         title: 'Success',
-        description: `Escort profile ${newStatus ? 'activated' : 'deactivated'} successfully`
+        description: `Escort profile ${newStatus ? 'activated' : 'deactivated'} by admin override`
       });
     },
     onError: (error: any) => {
@@ -267,7 +267,7 @@ const UserManagement = () => {
                       {user.escort_profile && (
                         <Badge variant="outline">
                           <Heart className="w-3 h-3 mr-1" />
-                          Escort
+                          Escort {user.escort_profile.verified ? '(Verified)' : '(Draft)'}
                         </Badge>
                       )}
                     </div>
@@ -332,36 +332,36 @@ const UserManagement = () => {
                       >
                         {user.is_admin ? (
                           <>
-                            <Ban className="w-4 h-4 mr-1" />
+                            <CrownOff className="w-4 h-4 mr-1" />
                             Remove Admin
                           </>
                         ) : (
                           <>
-                            <Shield className="w-4 h-4 mr-1" />
-                            Make Admin
+                            <Crown className="w-4 h-4 mr-1" />
+                            Grant Admin
                           </>
                         )}
                       </Button>
                       
                       {user.escort_profile && (
                         <Button
-                          variant={user.escort_profile.is_active ? "destructive" : "default"}
+                          variant={user.escort_profile.verified ? "destructive" : "default"}
                           size="sm"
-                          onClick={() => toggleEscortActiveMutation.mutate({ 
+                          onClick={() => adminActivateEscortMutation.mutate({ 
                             escortId: user.escort_profile!.id, 
-                            isActive: user.escort_profile!.is_active 
+                            verified: user.escort_profile!.verified 
                           })}
-                          disabled={toggleEscortActiveMutation.isPending}
+                          disabled={adminActivateEscortMutation.isPending}
                         >
-                          {user.escort_profile.is_active ? (
+                          {user.escort_profile.verified ? (
                             <>
                               <HeartOff className="w-4 h-4 mr-1" />
-                              Deactivate Escort
+                              Hide Profile
                             </>
                           ) : (
                             <>
                               <Heart className="w-4 h-4 mr-1" />
-                              Activate Escort
+                              Activate Profile
                             </>
                           )}
                         </Button>
