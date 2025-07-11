@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CreditCard, CheckCircle, Clock, Phone, AlertCircle, Heart } from 'lucide-react';
+import { Loader2, CreditCard, CheckCircle, Clock, Phone, AlertCircle, Heart, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembership, useInitiateMpesaPayment } from '@/hooks/useMembership';
 import { useToast } from '@/hooks/use-toast';
@@ -83,11 +83,11 @@ const MembershipUpgrade = () => {
           description: "Please check your phone for the M-Pesa prompt and enter your PIN to complete the payment.",
         });
         
-        // Poll for payment completion (in a real app, you might use websockets)
+        // Poll for payment completion
         setTimeout(() => {
           setIsPaymentPending(false);
-          window.location.reload(); // Refresh to check payment status
-        }, 45000); // 45 seconds
+          window.location.reload();
+        }, 45000);
       } else {
         throw new Error(result.error || 'Payment initiation failed');
       }
@@ -136,10 +136,8 @@ const MembershipUpgrade = () => {
     const today = new Date();
     const diffTime = expiry.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays <= 7; // Expiring within 7 days
+    return diffDays <= 7;
   };
-
-  const isProfileComplete = escortProfile?.stage_name && escortProfile?.bio && escortProfile?.age && escortProfile?.hourly_rate;
 
   if (isLoading) {
     return (
@@ -190,7 +188,7 @@ const MembershipUpgrade = () => {
             <div className="pt-4 border-t">
               <h4 className="font-medium mb-2">Premium Benefits:</h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Your escort profile is now live and visible</li>
+                <li>• Your escort profile is live and visible to clients</li>
                 <li>• Priority in search results</li>
                 <li>• Direct messaging with clients</li>
                 <li>• Booking management system</li>
@@ -224,29 +222,50 @@ const MembershipUpgrade = () => {
               
               {escortProfile ? (
                 <div className="space-y-3">
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                    <p className="text-sm text-blue-800">
-                      ✅ Your escort profile has been created successfully!
-                    </p>
-                    <p className="text-sm text-blue-700 mt-1">
-                      Complete payment to make it visible to clients and start receiving bookings.
+                  <div className="p-3 bg-green-50 border border-green-200 rounded">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <p className="text-sm font-medium text-green-800">
+                        Profile Created Successfully!
+                      </p>
+                    </div>
+                    <p className="text-sm text-green-700">
+                      Your escort profile is ready. Complete payment to make it visible to clients and start earning.
                     </p>
                   </div>
                   
-                  <div className="text-sm text-gray-600">
-                    <h5 className="font-medium mb-1">Profile Summary:</h5>
-                    <ul className="space-y-1">
-                      <li>• Stage Name: {escortProfile.stage_name}</li>
-                      <li>• Location: {escortProfile.location}</li>
-                      <li>• Rate: KES {escortProfile.hourly_rate}/hr</li>
-                      <li>• Category: {escortProfile.category}</li>
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                    <div className="flex items-center gap-2 mb-2">
+                      <User className="w-4 h-4 text-blue-600" />
+                      <h5 className="font-medium text-blue-800">Profile Summary:</h5>
+                    </div>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• <strong>Name:</strong> {escortProfile.stage_name}</li>
+                      <li>• <strong>Location:</strong> {escortProfile.location}</li>
+                      <li>• <strong>Rate:</strong> KES {escortProfile.hourly_rate}/hr</li>
+                      <li>• <strong>Category:</strong> {escortProfile.category}</li>
+                      <li>• <strong>Services:</strong> {escortProfile.services_offered?.length || 0} listed</li>
                     </ul>
+                  </div>
+                  
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-yellow-600" />
+                      <p className="text-sm text-yellow-800">
+                        <strong>Status:</strong> Profile created but hidden from clients. Pay KES 800 to activate.
+                      </p>
+                    </div>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-gray-600 mb-3">
-                  Create your escort profile first, then upgrade to Premium for KES 800/month to make it visible.
-                </p>
+                <div className="p-3 bg-red-50 border border-red-200 rounded">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-600" />
+                    <p className="text-sm text-red-800">
+                      <strong>No Profile Found:</strong> Please create your escort profile first before upgrading to Premium.
+                    </p>
+                  </div>
+                </div>
               )}
               
               {paymentError && (
@@ -261,49 +280,58 @@ const MembershipUpgrade = () => {
                 </div>
               )}
               
-              <div className="space-y-3">
-                <div>
-                  <Label htmlFor="phone">M-Pesa Phone Number</Label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Phone className="w-4 h-4 text-gray-500" />
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="254712345678 or 0712345678"
-                      value={phoneNumber}
-                      onChange={(e) => {
-                        setPhoneNumber(e.target.value);
-                        if (paymentError) setPaymentError(''); // Clear error when user types
-                      }}
-                      disabled={isPaymentPending}
-                    />
+              {escortProfile && (
+                <div className="space-y-3 pt-3 border-t">
+                  <div>
+                    <Label htmlFor="phone">M-Pesa Phone Number</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Phone className="w-4 h-4 text-gray-500" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="254712345678 or 0712345678"
+                        value={phoneNumber}
+                        onChange={(e) => {
+                          setPhoneNumber(e.target.value);
+                          if (paymentError) setPaymentError('');
+                        }}
+                        disabled={isPaymentPending}
+                      />
+                    </div>
                   </div>
+                  
+                  <Button 
+                    onClick={handlePayment}
+                    disabled={!phoneNumber || isPaymentPending}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    {isPaymentPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing M-Pesa Payment...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Pay KES 800 to Activate Profile
+                      </>
+                    )}
+                  </Button>
                 </div>
-                
-                <Button 
-                  onClick={handlePayment}
-                  disabled={!phoneNumber || isPaymentPending || !escortProfile}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  {isPaymentPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing M-Pesa Payment...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      {escortProfile ? 'Pay KES 800 to Activate Profile' : 'Create Profile First'}
-                    </>
-                  )}
-                </Button>
-                
-                {!escortProfile && (
-                  <p className="text-xs text-center text-gray-500">
-                    You need to create your escort profile before you can upgrade to Premium
-                  </p>
-                )}
-              </div>
+              )}
+              
+              {!escortProfile && (
+                <div className="pt-3 border-t text-center">
+                  <Button 
+                    onClick={() => window.location.href = '/escort-setup'}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Create Your Escort Profile First
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div className="text-xs text-gray-500 space-y-1">
