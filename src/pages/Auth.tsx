@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, ArrowLeft, Mail, Home } from 'lucide-react';
+import { Heart, ArrowLeft, Mail, Home, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
@@ -25,6 +26,19 @@ const Auth = () => {
   const { signUp, signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Check if user arrived via email verification
+  useEffect(() => {
+    const verified = searchParams.get('verified');
+    if (verified === 'true') {
+      toast({
+        title: "Account verified successfully!",
+        description: "Your account has been created and verified. You can now sign in.",
+        variant: "default"
+      });
+    }
+  }, [searchParams, toast]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,7 +166,7 @@ const Auth = () => {
             <div className="text-sm text-muted-foreground space-y-2">
               <p>• Check your spam folder if you don't see the email</p>
               <p>• The link will expire in 24 hours</p>
-              <p>• You can close this window after clicking the verification link</p>
+              <p>• You will be redirected back here after verification</p>
             </div>
 
             <Button
@@ -255,8 +269,20 @@ const Auth = () => {
               EldoVibes
             </span>
           </div>
-          <CardTitle>Welcome</CardTitle>
-          <CardDescription>Sign in to your account or create a new one</CardDescription>
+          {searchParams.get('verified') === 'true' ? (
+            <>
+              <CardTitle className="flex items-center justify-center gap-2 text-green-600">
+                <CheckCircle className="h-6 w-6" />
+                Account Verified!
+              </CardTitle>
+              <CardDescription>Your account has been successfully verified. Please sign in below.</CardDescription>
+            </>
+          ) : (
+            <>
+              <CardTitle>Welcome</CardTitle>
+              <CardDescription>Sign in to your account or create a new one</CardDescription>
+            </>
+          )}
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
