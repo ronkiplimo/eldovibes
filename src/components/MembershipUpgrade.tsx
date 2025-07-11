@@ -190,10 +190,10 @@ const MembershipUpgrade = () => {
             <div className="pt-4 border-t">
               <h4 className="font-medium mb-2">Premium Benefits:</h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Publish escort profiles</li>
+                <li>• Your escort profile is now live and visible</li>
                 <li>• Priority in search results</li>
                 <li>• Direct messaging with clients</li>
-                <li>• Booking management</li>
+                <li>• Booking management system</li>
                 <li>• Priority customer support</li>
               </ul>
             </div>
@@ -205,7 +205,7 @@ const MembershipUpgrade = () => {
                   <span className="font-medium text-sm">Escort Profile Status</span>
                 </div>
                 <Badge variant="outline" className="bg-green-50 text-green-700">
-                  {escortProfile.verified ? 'Live & Verified' : 'Under Review'}
+                  {escortProfile.verified ? 'Live & Visible to Clients' : 'Activating...'}
                 </Badge>
               </div>
             )}
@@ -219,29 +219,33 @@ const MembershipUpgrade = () => {
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Heart className="w-4 h-4 text-purple-600" />
-                <h4 className="font-medium">Escort Profile Premium</h4>
+                <h4 className="font-medium">Activate Your Escort Profile</h4>
               </div>
               
               {escortProfile ? (
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-600">
-                    {isProfileComplete 
-                      ? "Your escort profile is ready! Upgrade to Premium to publish it and start earning."
-                      : "Complete your escort profile setup, then upgrade to Premium to go live."
-                    }
-                  </p>
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                    <p className="text-sm text-blue-800">
+                      ✅ Your escort profile has been created successfully!
+                    </p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Complete payment to make it visible to clients and start receiving bookings.
+                    </p>
+                  </div>
                   
-                  {!isProfileComplete && (
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                      <p className="text-xs text-blue-800">
-                        💡 Tip: Complete your profile setup first before upgrading to get the most value from Premium.
-                      </p>
-                    </div>
-                  )}
+                  <div className="text-sm text-gray-600">
+                    <h5 className="font-medium mb-1">Profile Summary:</h5>
+                    <ul className="space-y-1">
+                      <li>• Stage Name: {escortProfile.stage_name}</li>
+                      <li>• Location: {escortProfile.location}</li>
+                      <li>• Rate: KES {escortProfile.hourly_rate}/hr</li>
+                      <li>• Category: {escortProfile.category}</li>
+                    </ul>
+                  </div>
                 </div>
               ) : (
                 <p className="text-sm text-gray-600 mb-3">
-                  Create an escort profile and upgrade to Premium for KES 800/month to start earning.
+                  Create your escort profile first, then upgrade to Premium for KES 800/month to make it visible.
                 </p>
               )}
               
@@ -278,7 +282,7 @@ const MembershipUpgrade = () => {
                 
                 <Button 
                   onClick={handlePayment}
-                  disabled={!phoneNumber || isPaymentPending}
+                  disabled={!phoneNumber || isPaymentPending || !escortProfile}
                   className="w-full bg-green-600 hover:bg-green-700"
                 >
                   {isPaymentPending ? (
@@ -289,17 +293,23 @@ const MembershipUpgrade = () => {
                   ) : (
                     <>
                       <CreditCard className="w-4 h-4 mr-2" />
-                      Pay KES 800 via M-Pesa
+                      {escortProfile ? 'Pay KES 800 to Activate Profile' : 'Create Profile First'}
                     </>
                   )}
                 </Button>
+                
+                {!escortProfile && (
+                  <p className="text-xs text-center text-gray-500">
+                    You need to create your escort profile before you can upgrade to Premium
+                  </p>
+                )}
               </div>
             </div>
 
             <div className="text-xs text-gray-500 space-y-1">
               <p>• Secure payment via M-Pesa STK Push</p>
               <p>• 30-day Premium membership</p>
-              <p>• Escort profiles become visible immediately after payment</p>
+              <p>• Profile becomes visible immediately after payment</p>
               <p>• Auto-renewal available (contact support)</p>
             </div>
           </div>

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -78,7 +79,7 @@ const EscortSetup = () => {
           phone_number: profileData.phoneNumber,
           date_of_birth: profileData.dateOfBirth,
           profile_image_url: profileData.profileImageUrl,
-          verified: false, // Profile starts as unverified/pending
+          verified: false, // Profile starts as unverified until payment
           is_active: true
         });
 
@@ -86,8 +87,8 @@ const EscortSetup = () => {
     },
     onSuccess: () => {
       toast({
-        title: 'Profile Created!',
-        description: 'Your escort profile has been created. Complete payment to make it visible to clients.',
+        title: 'Profile Created Successfully!',
+        description: 'Your escort profile has been saved. Now proceed with payment to make it visible to clients.',
       });
       // Redirect to membership page for payment
       navigate('/membership');
@@ -136,7 +137,7 @@ const EscortSetup = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Escort Profile</h1>
           <p className="text-gray-600">
-            Fill out your profile information below. Your profile will be pending until payment is completed.
+            Create your profile first, then complete payment to make it visible to clients.
           </p>
         </div>
 
@@ -148,12 +149,13 @@ const EscortSetup = () => {
               <div>
                 <h3 className="font-semibold text-blue-900 mb-1">How it works:</h3>
                 <ol className="text-blue-800 text-sm space-y-1">
-                  <li>1. Create your profile with all required information</li>
-                  <li>2. Complete payment to activate your profile</li>
-                  <li>3. Your profile becomes visible to clients once payment is confirmed</li>
+                  <li>1. Create your complete profile with all details</li>
+                  <li>2. Your profile is saved but remains hidden from clients</li>
+                  <li>3. Complete payment to activate and make your profile visible</li>
+                  <li>4. Start receiving bookings once your profile is live</li>
                 </ol>
                 <p className="text-blue-700 text-xs mt-2">
-                  Note: Your profile will remain in draft status until payment is completed.
+                  Note: You can create your profile now and pay later to activate it.
                 </p>
               </div>
             </div>
@@ -162,7 +164,7 @@ const EscortSetup = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Complete Your Profile</CardTitle>
+            <CardTitle>Complete Your Profile Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Basic Information */}
@@ -315,12 +317,22 @@ const EscortSetup = () => {
               />
             </div>
 
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <h4 className="font-medium text-amber-900 mb-2">💡 What happens next?</h4>
+              <ul className="text-amber-800 text-sm space-y-1">
+                <li>• Your profile will be saved but remain hidden from clients</li>
+                <li>• You'll be redirected to complete payment (KES 800/month)</li>
+                <li>• Once payment is confirmed, your profile becomes visible</li>
+                <li>• Clients can then view and book your services</li>
+              </ul>
+            </div>
+
             <Button
               onClick={handleSubmit}
               disabled={createProfileMutation.isPending || !isFormValid()}
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
-              {createProfileMutation.isPending ? 'Creating Profile...' : 'Create Profile & Proceed to Payment'}
+              {createProfileMutation.isPending ? 'Creating Profile...' : 'Create Profile & Continue to Payment'}
             </Button>
           </CardContent>
         </Card>
