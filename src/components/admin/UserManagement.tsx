@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Shield, Ban, CheckCircle, UserCheck, UserX, Heart, HeartOff, Crown, CrownOff } from 'lucide-react';
+import { Search, Shield, Ban, CheckCircle, UserCheck, UserX, Heart, HeartOff, Crown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLogActivity } from '@/hooks/useAdmin';
 
@@ -332,7 +331,7 @@ const UserManagement = () => {
                       >
                         {user.is_admin ? (
                           <>
-                            <CrownOff className="w-4 h-4 mr-1" />
+                            <Crown className="w-4 h-4 mr-1" />
                             Remove Admin
                           </>
                         ) : (
