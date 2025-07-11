@@ -88,12 +88,16 @@ const EscortSetup = () => {
     onSuccess: () => {
       toast({
         title: 'Profile Created Successfully!',
-        description: 'Your escort profile has been created. Now complete payment to make it visible to clients.',
+        description: 'Your escort profile has been created. Redirecting you to complete payment...',
       });
-      // Redirect to membership page for payment
-      navigate('/membership');
+      
+      // Add a small delay before redirect to ensure user sees the success message
+      setTimeout(() => {
+        navigate('/membership');
+      }, 1500);
     },
     onError: (error: any) => {
+      console.error('Profile creation error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to create profile',
@@ -112,6 +116,7 @@ const EscortSetup = () => {
       return;
     }
 
+    console.log('Creating profile with data:', formData);
     createProfileMutation.mutate(formData);
   };
 
