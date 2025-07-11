@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ImageUpload } from '@/components/ImageUpload';
+import ImageUpload from '@/components/ImageUpload';
 import Navbar from '@/components/Navbar';
 import { eldoretLocations } from '@/utils/locations';
 import { escortServices } from '@/utils/escortServices';
@@ -309,20 +309,10 @@ const EscortSetup = () => {
             <div className="space-y-2">
               <Label>Profile Image</Label>
               <ImageUpload
-                bucket="profile-images"
-                onUpload={(url) => setFormData(prev => ({ ...prev, profileImageUrl: url }))}
-                accept="image/*"
-                maxSize={5}
+                currentImageUrl={formData.profileImageUrl || undefined}
+                onImageUpload={(url) => setFormData(prev => ({ ...prev, profileImageUrl: url }))}
+                onImageRemove={() => setFormData(prev => ({ ...prev, profileImageUrl: null }))}
               />
-              {formData.profileImageUrl && (
-                <div className="mt-2">
-                  <img
-                    src={formData.profileImageUrl}
-                    alt="Profile preview"
-                    className="w-32 h-32 object-cover rounded-lg"
-                  />
-                </div>
-              )}
             </div>
 
             <Button
