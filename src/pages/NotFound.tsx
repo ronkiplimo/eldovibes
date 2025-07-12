@@ -2,12 +2,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
+import { Home, RefreshCw } from "lucide-react";
 
 const NotFound = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(10);
 
   useEffect(() => {
     console.error(
@@ -29,6 +29,10 @@ const NotFound = () => {
     return () => clearInterval(timer);
   }, [location.pathname, navigate]);
 
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="text-center max-w-md mx-auto p-8">
@@ -47,18 +51,29 @@ const NotFound = () => {
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-purple-600 h-2 rounded-full transition-all duration-1000"
-              style={{ width: `${(5 - countdown) * 20}%` }}
+              style={{ width: `${(10 - countdown) * 10}%` }}
             ></div>
           </div>
         </div>
 
-        <Button
-          onClick={() => navigate('/')}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-        >
-          <Home className="w-4 h-4 mr-2" />
-          Go to Home Now
-        </Button>
+        <div className="space-y-3">
+          <Button
+            onClick={() => navigate('/')}
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          >
+            <Home className="w-4 h-4 mr-2" />
+            Go to Home Now
+          </Button>
+          
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            className="w-full"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Try Refreshing Page
+          </Button>
+        </div>
       </div>
     </div>
   );
