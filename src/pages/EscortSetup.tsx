@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -73,10 +72,11 @@ const EscortSetup = () => {
         .from('escort_profiles')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (existingProfile) {
-        throw new Error('Profile already exists for this user');
+        console.log('Profile already exists, redirecting to membership...');
+        return existingProfile; // Return existing profile instead of throwing error
       }
 
       const { data, error } = await supabase
@@ -108,35 +108,30 @@ const EscortSetup = () => {
       return data;
     },
     onSuccess: (data) => {
-      console.log('Profile creation successful:', data);
+      console.log('Profile creation/check successful:', data);
       
       // Invalidate all relevant queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['escort-profile'] });
       queryClient.invalidateQueries({ queryKey: ['escort-profile-membership'] });
       queryClient.invalidateQueries({ queryKey: ['escort-profile-upgrade'] });
+      queryClient.invalidateQueries({ queryKey: ['membership'] });
       
       toast({
-        title: 'Profile Created Successfully!',
-        description: 'Redirecting you to complete payment...',
+        title: 'Profile Ready!',
+        description: 'Now complete your payment to activate your profile...',
       });
       
-      // Redirect immediately to membership page
-      navigate('/membership');
+      // Force redirect to membership page
+      setTimeout(() => {
+        navigate('/membership', { replace: true });
+      }, 1000);
     },
     onError: (error: any) => {
       console.error('Profile creation error:', error);
       
-      let errorMessage = 'Failed to create profile';
-      if (error.message?.includes('already exists')) {
-        errorMessage = 'You already have a profile. Redirecting to membership...';
-        setTimeout(() => navigate('/membership'), 1000);
-      } else {
-        errorMessage = error.message || 'Failed to create profile';
-      }
-      
       toast({
         title: 'Error',
-        description: errorMessage,
+        description: error.message || 'Failed to create profile',
         variant: 'destructive',
       });
     }
@@ -379,7 +374,7 @@ const EscortSetup = () => {
               disabled={createProfileMutation.isPending || !isFormValid()}
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
-              {createProfileMutation.isPending ? 'Creating Profile...' : 'Create Profile & Continue to Payment'}
+              {createProfileMutation.isPending ? 'Saving Profile...' : 'Save Profile & Continue to Payment'}
             </Button>
           </CardContent>
         </Card>

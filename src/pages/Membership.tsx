@@ -41,7 +41,7 @@ const Membership = () => {
     },
     enabled: !!user?.id,
     refetchOnWindowFocus: false,
-    staleTime: 10000, // Consider data fresh for 10 seconds
+    staleTime: 5000, // Consider data fresh for 5 seconds
   });
 
   // Refresh data when component mounts or user changes
@@ -83,6 +83,39 @@ const Membership = () => {
     );
   }
 
+  // If profile exists and user is paid, show success
+  if (hasProfile && isPaidMember) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="text-center space-y-6">
+            <Card className="max-w-md mx-auto border-green-200 bg-green-50">
+              <CardHeader>
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <Check className="w-8 h-8 text-green-600" />
+                </div>
+                <CardTitle className="text-green-800">🎉 Profile Active!</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-green-700 mb-4">
+                  Congratulations! Your escort profile is now live and visible to clients. You can start receiving bookings.
+                </p>
+                <Button 
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                >
+                  Go to Dashboard
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // If profile exists but not paid, show payment section directly
   if (hasProfile && !isPaidMember) {
     return (
@@ -118,8 +151,8 @@ const Membership = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-100 text-green-800">
                     <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-green-600 text-white">
                       ✓
@@ -127,7 +160,7 @@ const Membership = () => {
                     <span className="text-sm font-medium">Profile Created</span>
                   </div>
                   
-                  <ArrowRight className="w-4 h-4 text-gray-400" />
+                  <ArrowRight className="w-4 h-4 text-gray-400 hidden sm:block" />
                   
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-100 text-blue-800">
                     <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-blue-600 text-white">
@@ -136,7 +169,7 @@ const Membership = () => {
                     <span className="text-sm font-medium">Complete Payment</span>
                   </div>
                   
-                  <ArrowRight className="w-4 h-4 text-gray-400" />
+                  <ArrowRight className="w-4 h-4 text-gray-400 hidden sm:block" />
                   
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 text-gray-600">
                     <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-gray-400 text-white">
@@ -171,6 +204,7 @@ const Membership = () => {
     );
   }
 
+  // If no profile exists, show profile creation flow
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -204,8 +238,8 @@ const Membership = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${hasProfile ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${hasProfile ? 'bg-green-600 text-white' : 'bg-gray-400 text-white'}`}>
                     {hasProfile ? '✓' : '1'}
@@ -213,7 +247,7 @@ const Membership = () => {
                   <span className="text-sm font-medium">Create Profile</span>
                 </div>
                 
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-4 h-4 text-gray-400 hidden sm:block" />
                 
                 <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isPaidMember ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isPaidMember ? 'bg-green-600 text-white' : 'bg-gray-400 text-white'}`}>
@@ -222,7 +256,7 @@ const Membership = () => {
                   <span className="text-sm font-medium">Complete Payment</span>
                 </div>
                 
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-4 h-4 text-gray-400 hidden sm:block" />
                 
                 <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${(hasProfile && isPaidMember) ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${(hasProfile && isPaidMember) ? 'bg-green-600 text-white' : 'bg-gray-400 text-white'}`}>
@@ -235,133 +269,109 @@ const Membership = () => {
           </CardContent>
         </Card>
 
-        {isPaidMember && hasProfile ? (
-          <div className="text-center space-y-6">
-            <Card className="max-w-md mx-auto border-green-200 bg-green-50">
+        <div className="space-y-8">
+          {/* Step 1: Create Profile First */}
+          <Card className="border-blue-200 bg-blue-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-800">
+                <User className="w-5 h-5" />
+                Step 1: Create Your Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-blue-700 mb-4">
+                Start by creating your complete escort profile with photos, services, contact details, and rates.
+              </p>
+              <Button 
+                onClick={handleCreateProfile}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Create Your Escort Profile
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Membership Plans Preview */}
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Free Plan */}
+            <Card className="relative opacity-75">
               <CardHeader>
-                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <Check className="w-8 h-8 text-green-600" />
-                </div>
-                <CardTitle className="text-green-800">🎉 Profile Active!</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-green-700 mb-4">
-                  Congratulations! Your escort profile is now live and visible to clients. You can start receiving bookings.
-                </p>
-                <Button 
-                  onClick={() => navigate('/dashboard')}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  Go to Dashboard
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        ) : !hasProfile ? (
-          <div className="space-y-8">
-            {/* Step 1: Create Profile First */}
-            <Card className="border-blue-200 bg-blue-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-blue-800">
-                  <User className="w-5 h-5" />
-                  Step 1: Create Your Profile
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-gray-600" />
+                  Free Member
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-blue-700 mb-4">
-                  Start by creating your complete escort profile with photos, services, contact details, and rates.
-                </p>
-                <Button 
-                  onClick={handleCreateProfile}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Create Your Escort Profile
-                </Button>
+                <div className="space-y-4">
+                  <div className="text-3xl font-bold">Free</div>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500" />
+                      Browse escort profiles
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500" />
+                      Search and filter
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500" />
+                      Send messages
+                    </li>
+                    <li className="flex items-center gap-2 text-gray-400">
+                      <span className="w-4 h-4 text-center">×</span>
+                      Create visible escort profiles
+                    </li>
+                  </ul>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Membership Plans Preview */}
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Free Plan */}
-              <Card className="relative opacity-75">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-gray-600" />
-                    Free Member
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="text-3xl font-bold">Free</div>
-                    <ul className="space-y-2 text-sm">
-                      <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500" />
-                        Browse escort profiles
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500" />
-                        Search and filter
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500" />
-                        Send messages
-                      </li>
-                      <li className="flex items-center gap-2 text-gray-400">
-                        <span className="w-4 h-4 text-center">×</span>
-                        Create visible escort profiles
-                      </li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Premium Plan */}
-              <Card className="relative border-2 border-purple-200 bg-purple-50">
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-purple-600">Required for Escorts</Badge>
+            {/* Premium Plan */}
+            <Card className="relative border-2 border-purple-200 bg-purple-50">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-purple-600">Required for Escorts</Badge>
+              </div>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="w-5 h-5 text-purple-600" />
+                  Premium Member
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-3xl font-bold text-purple-600">KES 800<span className="text-lg font-normal">/month</span></div>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500" />
+                      All free features
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500" />
+                      Visible escort profiles
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500" />
+                      Priority in search results
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500" />
+                      Profile verification badge
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500" />
+                      Priority customer support
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Star className="w-4 h-4 text-yellow-500" />
+                      Start earning immediately
+                    </li>
+                  </ul>
                 </div>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Crown className="w-5 h-5 text-purple-600" />
-                    Premium Member
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="text-3xl font-bold text-purple-600">KES 800<span className="text-lg font-normal">/month</span></div>
-                    <ul className="space-y-2 text-sm">
-                      <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500" />
-                        All free features
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500" />
-                        Visible escort profiles
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500" />
-                        Priority in search results
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500" />
-                        Profile verification badge
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500" />
-                        Priority customer support
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Star className="w-4 h-4 text-yellow-500" />
-                        Start earning immediately
-                      </li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+              </CardContent>
+            </Card>
           </div>
-        ) : null}
+        </div>
       </div>
     </div>
   );
