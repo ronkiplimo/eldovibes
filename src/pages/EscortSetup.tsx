@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,6 +47,7 @@ const EscortSetup = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState<EscortProfileData>({
     stageName: '',
@@ -65,7 +66,9 @@ const EscortSetup = () => {
     mutationFn: async (profileData: EscortProfileData) => {
       if (!user) throw new Error('User not authenticated');
 
-      const { error } = await supabase
+      console.log('Creating profile with data:', profileData);
+
+      const { data, error } = await supabase
         .from('escort_profiles')
         .insert({
           user_id: user.id,
@@ -81,11 +84,26 @@ const EscortSetup = () => {
           profile_image_url: profileData.profileImageUrl,
           verified: false, // Profile starts as unverified until payment
           is_active: true
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile creation error:', error);
+        throw error;
+      }
+
+      console.log('Profile created successfully:', data);
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Profile creation successful, invalidating queries');
+      
+      // Invalidate all relevant queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['escort-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['escort-profile-membership'] });
+      queryClient.invalidateQueries({ queryKey: ['escort-profile-upgrade'] });
+      
       toast({
         title: 'Profile Created Successfully!',
         description: 'Your escort profile has been created. Redirecting you to complete payment...',
@@ -93,8 +111,9 @@ const EscortSetup = () => {
       
       // Add a small delay before redirect to ensure user sees the success message
       setTimeout(() => {
+        console.log('Redirecting to membership page');
         navigate('/membership');
-      }, 1500);
+      }, 2000);
     },
     onError: (error: any) => {
       console.error('Profile creation error:', error);
@@ -116,7 +135,7 @@ const EscortSetup = () => {
       return;
     }
 
-    console.log('Creating profile with data:', formData);
+    console.log('Submitting profile creation with data:', formData);
     createProfileMutation.mutate(formData);
   };
 
@@ -133,6 +152,11 @@ const EscortSetup = () => {
       !!dateOfBirth
     );
   };
+
+  if (!user) {
+    navigate('/auth');
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

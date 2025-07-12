@@ -4,7 +4,7 @@ import { useMembership } from '@/hooks/useMembership';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, MessageSquare } from 'lucide-react';
+import { Users, MessageSquare, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import BecomeEscort from '@/components/BecomeEscort';
@@ -34,7 +34,7 @@ const Dashboard = () => {
   });
 
   // Check if user has escort profile - with real-time updates
-  const { data: escortProfile } = useQuery({
+  const { data: escortProfile, refetch: refetchEscortProfile } = useQuery({
     queryKey: ['escort-profile', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -57,7 +57,7 @@ const Dashboard = () => {
     },
     enabled: !!user?.id,
     refetchOnWindowFocus: true,
-    refetchInterval: 30000,
+    refetchInterval: 5000, // Refresh every 5 seconds
   });
 
   const handleSignOut = async () => {
@@ -69,46 +69,60 @@ const Dashboard = () => {
     navigate('/messages');
   };
 
-  const handleManageProfile = () => {
-    if (escortProfile) {
-      navigate('/escort-setup');
-    } else {
-      navigate('/membership');
-    }
+  const handleCreateProfile = () => {
+    navigate('/escort-setup');
+  };
+
+  const handleEditProfile = () => {
+    navigate('/escort-setup');
+  };
+
+  const handleUpgradeMembership = () => {
+    navigate('/membership');
   };
 
   const getEscortProfileStatus = () => {
     if (!escortProfile) return { 
       label: 'Not Created', 
       emoji: '❌', 
-      color: 'bg-gray-100 text-gray-800' 
+      color: 'bg-gray-100 text-gray-800',
+      action: 'Create Profile',
+      actionHandler: handleCreateProfile
     };
     
     const isComplete = escortProfile.stage_name && escortProfile.bio && escortProfile.age && escortProfile.hourly_rate;
     const isPremium = membership?.status === 'paid';
     
     if (!isComplete) return { 
-      label: 'Created – Setup Required', 
-      emoji: '✅', 
-      color: 'bg-yellow-100 text-yellow-800' 
+      label: 'Incomplete Profile', 
+      emoji: '⚠️', 
+      color: 'bg-yellow-100 text-yellow-800',
+      action: 'Complete Profile',
+      actionHandler: handleEditProfile
     };
     
     if (!isPremium && !escortProfile.verified) return { 
-      label: 'Created – Payment Required', 
+      label: 'Created - Payment Required', 
       emoji: '💳', 
-      color: 'bg-orange-100 text-orange-800' 
+      color: 'bg-orange-100 text-orange-800',
+      action: 'Complete Payment',
+      actionHandler: handleUpgradeMembership
     };
     
     if (!escortProfile.verified && isPremium) return { 
       label: 'Pending Approval', 
       emoji: '🕓', 
-      color: 'bg-blue-100 text-blue-800' 
+      color: 'bg-blue-100 text-blue-800',
+      action: 'Edit Profile',
+      actionHandler: handleEditProfile
     };
     
     return { 
       label: 'Active & Listed', 
       emoji: '🌐', 
-      color: 'bg-green-100 text-green-800' 
+      color: 'bg-green-100 text-green-800',
+      action: 'Edit Profile',
+      actionHandler: handleEditProfile
     };
   };
 
@@ -149,10 +163,10 @@ const Dashboard = () => {
                   <Button
                     variant="outline"
                     className="h-20 flex-col gap-2"
-                    onClick={handleManageProfile}
+                    onClick={escortStatus.actionHandler}
                   >
-                    <Users className="w-6 h-6" />
-                    {escortProfile ? 'Manage Profile' : 'Create Profile'}
+                    {escortProfile ? <Edit className="w-6 h-6" /> : <Users className="w-6 h-6" />}
+                    {escortStatus.action}
                   </Button>
                 </div>
               </CardContent>
@@ -263,16 +277,25 @@ const Dashboard = () => {
                       </div>
                     )}
 
-                    {!escortProfile.verified && membership?.status !== 'paid' && (
-                      <div className="pt-3 border-t">
+                    <div className="pt-3 border-t space-y-2">
+                      <Button 
+                        onClick={escortStatus.actionHandler}
+                        className="w-full"
+                        variant={escortProfile.verified ? "outline" : "default"}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        {escortStatus.action}
+                      </Button>
+                      
+                      {!escortProfile.verified && membership?.status !== 'paid' && (
                         <Button 
-                          onClick={() => navigate('/membership')}
+                          onClick={handleUpgradeMembership}
                           className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                         >
                           Complete Payment
                         </Button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

@@ -23,6 +23,8 @@ const Membership = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       
+      console.log('Membership page fetching escort profile for user:', user.id);
+      
       const { data, error } = await supabase
         .from('escort_profiles')
         .select('*')
@@ -30,12 +32,16 @@ const Membership = () => {
         .single();
       
       if (error && error.code !== 'PGRST116') {
+        console.error('Membership page escort profile fetch error:', error);
         throw error;
       }
       
+      console.log('Membership page escort profile data:', data);
       return data;
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    refetchOnWindowFocus: true,
+    refetchInterval: 5000,
   });
 
   if (!user) {
