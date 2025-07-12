@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -75,8 +76,8 @@ const EscortSetup = () => {
         .maybeSingle();
 
       if (existingProfile) {
-        console.log('Profile already exists, redirecting to membership...');
-        return existingProfile; // Return existing profile instead of throwing error
+        console.log('Profile already exists, will redirect to membership...');
+        return existingProfile; // Return existing profile
       }
 
       const { data, error } = await supabase
@@ -118,13 +119,11 @@ const EscortSetup = () => {
       
       toast({
         title: 'Profile Ready!',
-        description: 'Now complete your payment to activate your profile...',
+        description: 'Redirecting to payment page...',
       });
       
-      // Force redirect to membership page
-      setTimeout(() => {
-        navigate('/membership', { replace: true });
-      }, 1000);
+      // Navigate to membership page immediately
+      navigate('/membership', { replace: true });
     },
     onError: (error: any) => {
       console.error('Profile creation error:', error);
