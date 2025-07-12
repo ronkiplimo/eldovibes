@@ -1,10 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Star, Heart, User, ArrowRight } from 'lucide-react';
+import { Check, Crown, Star, Heart, User, ArrowRight, RefreshCw } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import MembershipUpgrade from '@/components/MembershipUpgrade';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,10 +15,10 @@ import { supabase } from '@/integrations/supabase/client';
 const Membership = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: membership } = useMembership();
+  const { data: membership, refetch: refetchMembership } = useMembership();
 
-  // Check if user has escort profile
-  const { data: escortProfile, isLoading: profileLoading } = useQuery({
+  // Check if user has escort profile with better error handling
+  const { data: escortProfile, isLoading: profileLoading, refetch: refetchProfile } = useQuery({
     queryKey: ['escort-profile-membership', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -29,20 +29,32 @@ const Membership = () => {
         .from('escort_profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Membership page escort profile fetch error:', error);
-        throw error;
+        return null;
       }
       
       console.log('Membership page escort profile data:', data);
       return data;
     },
     enabled: !!user?.id,
-    refetchOnWindowFocus: true,
-    refetchInterval: 5000,
+    refetchOnWindowFocus: false,
+    staleTime: 10000, // Consider data fresh for 10 seconds
   });
+
+  // Refresh data when component mounts or user changes
+  useEffect(() => {
+    if (user?.id) {
+      refetchProfile();
+      refetchMembership();
+    }
+  }, [user?.id, refetchProfile, refetchMembership]);
+
+  const handleRefresh = async () => {
+    await Promise.all([refetchProfile(), refetchMembership()]);
+  };
 
   if (!user) {
     navigate('/auth');
@@ -55,6 +67,21 @@ const Membership = () => {
   const handleCreateProfile = () => {
     navigate('/escort-setup');
   };
+
+  // Loading state
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading your profile...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // If profile exists but not paid, show payment section directly
   if (hasProfile && !isPaidMember) {
@@ -70,6 +97,16 @@ const Membership = () => {
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Your profile is ready! Pay KES 800 to make it visible to clients and start earning.
             </p>
+            
+            <Button 
+              onClick={handleRefresh}
+              variant="outline"
+              size="sm"
+              className="mt-4"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh Status
+            </Button>
           </div>
 
           {/* Progress Status */}
@@ -146,6 +183,16 @@ const Membership = () => {
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Join our premium platform and start earning with verified companion services
           </p>
+          
+          <Button 
+            onClick={handleRefresh}
+            variant="outline"
+            size="sm"
+            className="mt-4"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh Status
+          </Button>
         </div>
 
         {/* Flow Status */}

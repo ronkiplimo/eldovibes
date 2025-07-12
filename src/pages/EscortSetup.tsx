@@ -68,6 +68,17 @@ const EscortSetup = () => {
 
       console.log('Creating profile with data:', profileData);
 
+      // First check if profile already exists
+      const { data: existingProfile } = await supabase
+        .from('escort_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (existingProfile) {
+        throw new Error('Profile already exists for this user');
+      }
+
       const { data, error } = await supabase
         .from('escort_profiles')
         .insert({
@@ -90,14 +101,14 @@ const EscortSetup = () => {
 
       if (error) {
         console.error('Profile creation error:', error);
-        throw error;
+        throw new Error(error.message || 'Failed to create profile');
       }
 
       console.log('Profile created successfully:', data);
       return data;
     },
     onSuccess: (data) => {
-      console.log('Profile creation successful, invalidating queries');
+      console.log('Profile creation successful:', data);
       
       // Invalidate all relevant queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['escort-profile'] });
@@ -106,20 +117,26 @@ const EscortSetup = () => {
       
       toast({
         title: 'Profile Created Successfully!',
-        description: 'Your escort profile has been created. Redirecting you to complete payment...',
+        description: 'Redirecting you to complete payment...',
       });
       
-      // Add a small delay before redirect to ensure user sees the success message
-      setTimeout(() => {
-        console.log('Redirecting to membership page');
-        navigate('/membership');
-      }, 2000);
+      // Redirect immediately to membership page
+      navigate('/membership');
     },
     onError: (error: any) => {
       console.error('Profile creation error:', error);
+      
+      let errorMessage = 'Failed to create profile';
+      if (error.message?.includes('already exists')) {
+        errorMessage = 'You already have a profile. Redirecting to membership...';
+        setTimeout(() => navigate('/membership'), 1000);
+      } else {
+        errorMessage = error.message || 'Failed to create profile';
+      }
+      
       toast({
         title: 'Error',
-        description: error.message || 'Failed to create profile',
+        description: errorMessage,
         variant: 'destructive',
       });
     }
@@ -142,14 +159,14 @@ const EscortSetup = () => {
   const isFormValid = (): boolean => {
     const { stageName, bio, age, category, hourlyRate, location, phoneNumber, dateOfBirth } = formData;
     return (
-      !!stageName &&
-      !!bio &&
+      stageName.trim() !== '' &&
+      bio.trim() !== '' &&
       age >= 18 &&
-      !!category &&
+      category !== '' &&
       hourlyRate >= 500 && hourlyRate <= 10000 &&
-      !!location &&
-      !!phoneNumber &&
-      !!dateOfBirth
+      location !== '' &&
+      phoneNumber.trim() !== '' &&
+      dateOfBirth !== ''
     );
   };
 
@@ -217,7 +234,7 @@ const EscortSetup = () => {
                   min="18"
                   max="65"
                   value={formData.age}
-                  onChange={(e) => setFormData(prev => ({ ...prev, age: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, age: parseInt(e.target.value) || 18 }))}
                   required
                 />
               </div>
@@ -278,7 +295,7 @@ const EscortSetup = () => {
                   min="500"
                   max="10000"
                   value={formData.hourlyRate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: parseInt(e.target.value) || 500 }))}
                   placeholder="e.g., 2000"
                   required
                 />
@@ -362,7 +379,7 @@ const EscortSetup = () => {
               disabled={createProfileMutation.isPending || !isFormValid()}
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
-              {createProfileMutation.isPending ? 'Saving Profile...' : 'Save Profile & Continue to Payment'}
+              {createProfileMutation.isPending ? 'Creating Profile...' : 'Create Profile & Continue to Payment'}
             </Button>
           </CardContent>
         </Card>
