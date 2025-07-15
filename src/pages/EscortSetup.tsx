@@ -175,12 +175,14 @@ const EscortSetup = () => {
         description: isEditing ? 'Your changes have been saved.' : 'Your profile has been saved permanently. Complete payment to make it visible to clients.',
       });
       
-      // Navigate based on action - ALWAYS redirect to payment for new profiles
+      // FIXED: Always redirect appropriately
       if (isEditing) {
-        navigate('/dashboard', { replace: true });
+        // If editing, go back to dashboard
+        navigate('/dashboard');
       } else {
-        // For new profiles, ALWAYS redirect to payment page
-        navigate('/payment', { replace: true });
+        // If creating new profile, ALWAYS go to payment page
+        console.log('Redirecting to payment page for new profile');
+        navigate('/payment');
       }
     },
     onError: (error: any) => {

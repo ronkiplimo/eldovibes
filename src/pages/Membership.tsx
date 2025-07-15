@@ -3,10 +3,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Star, Heart, User, ArrowRight, RefreshCw, Edit } from 'lucide-react';
+import { Check, User, RefreshCw, Edit } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import MembershipUpgrade from '@/components/MembershipUpgrade';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembership } from '@/hooks/useMembership';
 import { useQuery } from '@tanstack/react-query';
@@ -52,11 +50,11 @@ const Membership = () => {
     }
   }, [user?.id, refetchProfile, refetchMembership]);
 
-  // Redirect logic - if user has profile but no payment, go to payment page
+  // FIXED: Redirect logic - if user has profile but no payment, go to payment page
   useEffect(() => {
     if (!profileLoading && escortProfile && membership?.status !== 'paid') {
       console.log('User has profile but not paid, redirecting to payment');
-      navigate('/payment');
+      navigate('/payment', { replace: true });
     }
   }, [escortProfile, membership, profileLoading, navigate]);
 
