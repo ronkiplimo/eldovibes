@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Star, Heart, User, ArrowRight, RefreshCw } from 'lucide-react';
+import { Check, Crown, Star, Heart, User, ArrowRight, RefreshCw, Edit } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import MembershipUpgrade from '@/components/MembershipUpgrade';
 import { useAuth } from '@/hooks/useAuth';
@@ -68,6 +68,10 @@ const Membership = () => {
     navigate('/escort-setup');
   };
 
+  const handleEditProfile = () => {
+    navigate('/escort-setup?edit=true');
+  };
+
   // Loading state
   if (profileLoading) {
     return (
@@ -102,12 +106,22 @@ const Membership = () => {
                 <p className="text-green-700 mb-4">
                   Congratulations! Your escort profile is now live and visible to clients. You can start receiving bookings.
                 </p>
-                <Button 
-                  onClick={() => navigate('/dashboard')}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  Go to Dashboard
-                </Button>
+                <div className="space-y-2">
+                  <Button 
+                    onClick={() => navigate('/dashboard')}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    Go to Dashboard
+                  </Button>
+                  <Button 
+                    onClick={handleEditProfile}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -131,15 +145,24 @@ const Membership = () => {
               Your profile is ready! Pay KES 800 to make it visible to clients and start earning.
             </p>
             
-            <Button 
-              onClick={handleRefresh}
-              variant="outline"
-              size="sm"
-              className="mt-4"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh Status
-            </Button>
+            <div className="flex gap-2 justify-center mt-4">
+              <Button 
+                onClick={handleRefresh}
+                variant="outline"
+                size="sm"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh Status
+              </Button>
+              <Button 
+                onClick={handleEditProfile}
+                variant="outline"
+                size="sm"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Button>
+            </div>
           </div>
 
           <div className="max-w-md mx-auto">
@@ -150,7 +173,7 @@ const Membership = () => {
     );
   }
 
-  // If no profile exists, show profile creation flow
+  // If no profile exists, show profile creation only
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -158,10 +181,10 @@ const Membership = () => {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Become an Escort
+            Create Your Escort Profile
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Join our premium platform and start earning with verified companion services
+            Start by creating your complete escort profile. Your profile will be saved and you can publish it later.
           </p>
           
           <Button 
@@ -175,18 +198,17 @@ const Membership = () => {
           </Button>
         </div>
 
-        <div className="space-y-8">
-          {/* Step 1: Create Profile First */}
+        <div className="max-w-2xl mx-auto">
           <Card className="border-blue-200 bg-blue-50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-800">
                 <User className="w-5 h-5" />
-                Step 1: Create Your Profile
+                Create Your Profile
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-blue-700 mb-4">
-                Start by creating your complete escort profile with photos, services, contact details, and rates.
+                Create your complete escort profile with photos, services, contact details, and rates. Your profile will be saved permanently.
               </p>
               <Button 
                 onClick={handleCreateProfile}
@@ -197,86 +219,6 @@ const Membership = () => {
               </Button>
             </CardContent>
           </Card>
-
-          {/* Membership Plans Preview */}
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Free Plan */}
-            <Card className="relative opacity-75">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Heart className="w-5 h-5 text-gray-600" />
-                  Free Member
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-3xl font-bold">Free</div>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      Browse escort profiles
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      Search and filter
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      Send messages
-                    </li>
-                    <li className="flex items-center gap-2 text-gray-400">
-                      <span className="w-4 h-4 text-center">×</span>
-                      Create visible escort profiles
-                    </li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Premium Plan */}
-            <Card className="relative border-2 border-purple-200 bg-purple-50">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-purple-600">Required for Escorts</Badge>
-              </div>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Crown className="w-5 h-5 text-purple-600" />
-                  Premium Member
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-3xl font-bold text-purple-600">KES 800<span className="text-lg font-normal">/month</span></div>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      All free features
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      Visible escort profiles
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      Priority in search results
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      Profile verification badge
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      Priority customer support
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-yellow-500" />
-                      Start earning immediately
-                    </li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </div>

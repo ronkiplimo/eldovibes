@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,6 +48,8 @@ const EscortSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const isEditing = searchParams.get('edit') === 'true';
 
   const [formData, setFormData] = useState<EscortProfileData>({
     stageName: '',
@@ -61,77 +64,128 @@ const EscortSetup = () => {
     profileImageUrl: null,
   });
 
-  const createProfileMutation = useMutation({
+  // Fetch existing profile if editing
+  const { data: existingProfile, isLoading } = useQuery({
+    queryKey: ['escort-profile-edit', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('escort_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching existing profile:', error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!user?.id && isEditing,
+  });
+
+  // Load existing profile data when editing
+  useEffect(() => {
+    if (existingProfile && isEditing) {
+      setFormData({
+        stageName: existingProfile.stage_name || '',
+        bio: existingProfile.bio || '',
+        age: existingProfile.age || 18,
+        category: existingProfile.category || '',
+        servicesOffered: existingProfile.services_offered || [],
+        hourlyRate: existingProfile.hourly_rate || 500,
+        location: existingProfile.location || '',
+        phoneNumber: existingProfile.phone_number || '',
+        dateOfBirth: existingProfile.date_of_birth || new Date(Date.now() - 18 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        profileImageUrl: existingProfile.profile_image_url || null,
+      });
+    }
+  }, [existingProfile, isEditing]);
+
+  const createOrUpdateProfileMutation = useMutation({
     mutationFn: async (profileData: EscortProfileData) => {
       if (!user) throw new Error('User not authenticated');
 
-      console.log('Creating profile with data:', profileData);
+      console.log('Creating/updating profile with data:', profileData);
 
-      // First check if profile already exists
-      const { data: existingProfile } = await supabase
-        .from('escort_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const profilePayload = {
+        user_id: user.id,
+        stage_name: profileData.stageName,
+        bio: profileData.bio,
+        age: profileData.age,
+        category: profileData.category,
+        services_offered: profileData.servicesOffered,
+        hourly_rate: profileData.hourlyRate,
+        location: profileData.location,
+        phone_number: profileData.phoneNumber,
+        date_of_birth: profileData.dateOfBirth,
+        profile_image_url: profileData.profileImageUrl,
+        is_active: true
+      };
 
-      if (existingProfile) {
-        console.log('Profile already exists, will redirect to membership...');
-        return existingProfile;
+      if (isEditing && existingProfile) {
+        // Update existing profile
+        const { data, error } = await supabase
+          .from('escort_profiles')
+          .update(profilePayload)
+          .eq('user_id', user.id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Profile update error:', error);
+          throw new Error(error.message || 'Failed to update profile');
+        }
+
+        console.log('Profile updated successfully:', data);
+        return data;
+      } else {
+        // Create new profile
+        const { data, error } = await supabase
+          .from('escort_profiles')
+          .insert(profilePayload)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Profile creation error:', error);
+          throw new Error(error.message || 'Failed to create profile');
+        }
+
+        console.log('Profile created successfully:', data);
+        return data;
       }
-
-      const { data, error } = await supabase
-        .from('escort_profiles')
-        .insert({
-          user_id: user.id,
-          stage_name: profileData.stageName,
-          bio: profileData.bio,
-          age: profileData.age,
-          category: profileData.category,
-          services_offered: profileData.servicesOffered,
-          hourly_rate: profileData.hourlyRate,
-          location: profileData.location,
-          phone_number: profileData.phoneNumber,
-          date_of_birth: profileData.dateOfBirth,
-          profile_image_url: profileData.profileImageUrl,
-          verified: false,
-          is_active: true
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Profile creation error:', error);
-        throw new Error(error.message || 'Failed to create profile');
-      }
-
-      console.log('Profile created successfully:', data);
-      return data;
     },
     onSuccess: (data) => {
-      console.log('Profile creation/check successful:', data);
+      console.log('Profile operation successful:', data);
       
       // Invalidate all relevant queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['escort-profile'] });
       queryClient.invalidateQueries({ queryKey: ['escort-profile-membership'] });
       queryClient.invalidateQueries({ queryKey: ['escort-profile-upgrade'] });
+      queryClient.invalidateQueries({ queryKey: ['escort-profile-edit'] });
       queryClient.invalidateQueries({ queryKey: ['membership'] });
       
       toast({
-        title: 'Profile Saved Successfully!',
-        description: 'Redirecting to payment page...',
+        title: isEditing ? 'Profile Updated Successfully!' : 'Profile Saved Successfully!',
+        description: isEditing ? 'Your changes have been saved.' : 'Your profile has been created and saved.',
       });
       
-      // Navigate to membership page immediately
-      setTimeout(() => {
+      // Navigate based on action
+      if (isEditing) {
+        navigate('/dashboard', { replace: true });
+      } else {
         navigate('/membership', { replace: true });
-      }, 1000);
+      }
     },
     onError: (error: any) => {
-      console.error('Profile creation error:', error);
+      console.error('Profile operation error:', error);
       
       toast({
         title: 'Error',
-        description: error.message || 'Failed to create profile',
+        description: error.message || 'Failed to save profile',
         variant: 'destructive',
       });
     }
@@ -147,8 +201,8 @@ const EscortSetup = () => {
       return;
     }
 
-    console.log('Submitting profile creation with data:', formData);
-    createProfileMutation.mutate(formData);
+    console.log('Submitting profile operation with data:', formData);
+    createOrUpdateProfileMutation.mutate(formData);
   };
 
   const isFormValid = (): boolean => {
@@ -170,42 +224,62 @@ const EscortSetup = () => {
     return null;
   }
 
+  if (isLoading && isEditing) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading your profile...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Escort Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {isEditing ? 'Edit Your Escort Profile' : 'Create Your Escort Profile'}
+          </h1>
           <p className="text-gray-600">
-            Complete your profile with all details, then proceed with payment to make it visible to clients.
+            {isEditing 
+              ? 'Update your profile details below. Your changes will be saved immediately.'
+              : 'Complete your profile with all details. Your profile will be saved and you can publish it later.'
+            }
           </p>
         </div>
 
-        {/* Profile Creation Process */}
-        <Card className="mb-6 bg-blue-50 border-blue-200">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-              <div>
-                <h3 className="font-semibold text-blue-900 mb-1">Quick Setup Process:</h3>
-                <ol className="text-blue-800 text-sm space-y-1">
-                  <li>1. Fill in all your profile details (photos, services, contact info)</li>
-                  <li>2. Save your complete profile</li>
-                  <li>3. Enter your phone number for M-Pesa STK push payment</li>
-                  <li>4. Your profile becomes visible to clients after payment</li>
-                </ol>
-                <p className="text-blue-700 text-xs mt-2">
-                  Note: Your profile will be saved but remain hidden until payment is completed.
-                </p>
+        {!isEditing && (
+          <Card className="mb-6 bg-blue-50 border-blue-200">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                <div>
+                  <h3 className="font-semibold text-blue-900 mb-1">Profile Creation Process:</h3>
+                  <ol className="text-blue-800 text-sm space-y-1">
+                    <li>1. Fill in all your profile details (photos, services, contact info)</li>
+                    <li>2. Save your complete profile (it will be stored permanently)</li>
+                    <li>3. Go to membership page to publish your profile with payment</li>
+                    <li>4. Your profile becomes visible to clients after payment</li>
+                  </ol>
+                  <p className="text-blue-700 text-xs mt-2">
+                    Note: Your profile will be saved permanently even without payment. You can edit it anytime.
+                  </p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
-            <CardTitle>Complete Your Profile Information</CardTitle>
+            <CardTitle>{isEditing ? 'Update Your Profile Information' : 'Complete Your Profile Information'}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Basic Information */}
@@ -360,21 +434,34 @@ const EscortSetup = () => {
             </div>
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-medium text-green-900 mb-2">💡 Next Steps</h4>
+              <h4 className="font-medium text-green-900 mb-2">💡 {isEditing ? 'Profile Update' : 'Profile Saving'}</h4>
               <ul className="text-green-800 text-sm space-y-1">
-                <li>• Your profile will be saved with all details you've entered</li>
-                <li>• You'll be redirected to enter your phone number for payment</li>
-                <li>• M-Pesa STK push will be sent to your phone for KES 800 payment</li>
-                <li>• Once payment is confirmed, your profile becomes visible to clients</li>
+                {isEditing ? (
+                  <>
+                    <li>• Your profile changes will be saved immediately</li>
+                    <li>• If your profile is published, changes will be visible to clients</li>
+                    <li>• You can edit your profile anytime, even after publishing</li>
+                  </>
+                ) : (
+                  <>
+                    <li>• Your profile will be saved permanently with all details</li>
+                    <li>• You can edit your profile anytime after saving</li>
+                    <li>• To make it visible to clients, you'll need to complete payment</li>
+                    <li>• Your profile remains saved even if you don't pay immediately</li>
+                  </>
+                )}
               </ul>
             </div>
 
             <Button
               onClick={handleSubmit}
-              disabled={createProfileMutation.isPending || !isFormValid()}
+              disabled={createOrUpdateProfileMutation.isPending || !isFormValid()}
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
-              {createProfileMutation.isPending ? 'Saving Profile...' : 'Save Profile & Continue to Payment'}
+              {createOrUpdateProfileMutation.isPending 
+                ? (isEditing ? 'Updating Profile...' : 'Saving Profile...') 
+                : (isEditing ? 'Update Profile' : 'Save Profile')
+              }
             </Button>
           </CardContent>
         </Card>
