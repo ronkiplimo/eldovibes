@@ -166,6 +166,7 @@ const EscortSetup = () => {
       queryClient.invalidateQueries({ queryKey: ['escort-profile-membership'] });
       queryClient.invalidateQueries({ queryKey: ['escort-profile-upgrade'] });
       queryClient.invalidateQueries({ queryKey: ['escort-profile-edit'] });
+      queryClient.invalidateQueries({ queryKey: ['escort-profile-payment'] });
       queryClient.invalidateQueries({ queryKey: ['membership'] });
       
       toast({
@@ -177,7 +178,7 @@ const EscortSetup = () => {
       if (isEditing) {
         navigate('/dashboard', { replace: true });
       } else {
-        navigate('/membership', { replace: true });
+        navigate('/payment', { replace: true });
       }
     },
     onError: (error: any) => {
@@ -445,9 +446,9 @@ const EscortSetup = () => {
                 ) : (
                   <>
                     <li>• Your profile will be saved permanently with all details</li>
-                    <li>• You can edit your profile anytime after saving</li>
-                    <li>• To make it visible to clients, you'll need to complete payment</li>
+                    <li>• You'll be redirected to the payment page to activate your profile</li>
                     <li>• Your profile remains saved even if you don't pay immediately</li>
+                    <li>• You can edit your profile anytime after saving</li>
                   </>
                 )}
               </ul>
@@ -460,7 +461,7 @@ const EscortSetup = () => {
             >
               {createOrUpdateProfileMutation.isPending 
                 ? (isEditing ? 'Updating Profile...' : 'Saving Profile...') 
-                : (isEditing ? 'Update Profile' : 'Save Profile')
+                : (isEditing ? 'Update Profile' : 'Save Profile & Continue to Payment')
               }
             </Button>
           </CardContent>
