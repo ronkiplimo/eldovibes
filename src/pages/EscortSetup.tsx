@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -77,7 +76,7 @@ const EscortSetup = () => {
 
       if (existingProfile) {
         console.log('Profile already exists, will redirect to membership...');
-        return existingProfile; // Return existing profile
+        return existingProfile;
       }
 
       const { data, error } = await supabase
@@ -94,7 +93,7 @@ const EscortSetup = () => {
           phone_number: profileData.phoneNumber,
           date_of_birth: profileData.dateOfBirth,
           profile_image_url: profileData.profileImageUrl,
-          verified: false, // Profile starts as unverified until payment
+          verified: false,
           is_active: true
         })
         .select()
@@ -118,12 +117,14 @@ const EscortSetup = () => {
       queryClient.invalidateQueries({ queryKey: ['membership'] });
       
       toast({
-        title: 'Profile Ready!',
+        title: 'Profile Saved Successfully!',
         description: 'Redirecting to payment page...',
       });
       
       // Navigate to membership page immediately
-      navigate('/membership', { replace: true });
+      setTimeout(() => {
+        navigate('/membership', { replace: true });
+      }, 1000);
     },
     onError: (error: any) => {
       console.error('Profile creation error:', error);
@@ -187,11 +188,11 @@ const EscortSetup = () => {
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
               <div>
-                <h3 className="font-semibold text-blue-900 mb-1">Profile Creation Process:</h3>
+                <h3 className="font-semibold text-blue-900 mb-1">Quick Setup Process:</h3>
                 <ol className="text-blue-800 text-sm space-y-1">
                   <li>1. Fill in all your profile details (photos, services, contact info)</li>
                   <li>2. Save your complete profile</li>
-                  <li>3. Complete payment (KES 800/month) to activate your profile</li>
+                  <li>3. Enter your phone number for M-Pesa STK push payment</li>
                   <li>4. Your profile becomes visible to clients after payment</li>
                 </ol>
                 <p className="text-blue-700 text-xs mt-2">
@@ -358,13 +359,13 @@ const EscortSetup = () => {
               <p className="text-xs text-gray-500">Upload a professional photo to attract more clients</p>
             </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <h4 className="font-medium text-amber-900 mb-2">💡 Next Steps</h4>
-              <ul className="text-amber-800 text-sm space-y-1">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 className="font-medium text-green-900 mb-2">💡 Next Steps</h4>
+              <ul className="text-green-800 text-sm space-y-1">
                 <li>• Your profile will be saved with all details you've entered</li>
-                <li>• After saving, you'll be redirected to complete payment (KES 800/month)</li>
+                <li>• You'll be redirected to enter your phone number for payment</li>
+                <li>• M-Pesa STK push will be sent to your phone for KES 800 payment</li>
                 <li>• Once payment is confirmed, your profile becomes visible to clients</li>
-                <li>• Clients can then view, contact, and book your services</li>
               </ul>
             </div>
 

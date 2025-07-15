@@ -41,7 +41,7 @@ const Membership = () => {
     },
     enabled: !!user?.id,
     refetchOnWindowFocus: false,
-    staleTime: 5000, // Consider data fresh for 5 seconds
+    staleTime: 5000,
   });
 
   // Refresh data when component mounts or user changes
@@ -116,7 +116,7 @@ const Membership = () => {
     );
   }
 
-  // If profile exists but not paid, show payment section
+  // If profile exists but not paid, show payment section directly
   if (hasProfile && !isPaidMember) {
     return (
       <div className="min-h-screen bg-gray-50">
