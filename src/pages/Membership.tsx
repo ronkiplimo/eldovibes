@@ -52,6 +52,14 @@ const Membership = () => {
     }
   }, [user?.id, refetchProfile, refetchMembership]);
 
+  // Redirect logic - if user has profile but no payment, go to payment page
+  useEffect(() => {
+    if (!profileLoading && escortProfile && membership?.status !== 'paid') {
+      console.log('User has profile but not paid, redirecting to payment');
+      navigate('/payment');
+    }
+  }, [escortProfile, membership, profileLoading, navigate]);
+
   const handleRefresh = async () => {
     await Promise.all([refetchProfile(), refetchMembership()]);
   };
@@ -130,48 +138,8 @@ const Membership = () => {
     );
   }
 
-  // If profile exists but not paid, show payment section directly
-  if (hasProfile && !isPaidMember) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Complete Your Payment
-            </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Your profile is ready! Pay KES 800 to make it visible to clients and start earning.
-            </p>
-            
-            <div className="flex gap-2 justify-center mt-4">
-              <Button 
-                onClick={handleRefresh}
-                variant="outline"
-                size="sm"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh Status
-              </Button>
-              <Button 
-                onClick={handleEditProfile}
-                variant="outline"
-                size="sm"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Button>
-            </div>
-          </div>
-
-          <div className="max-w-md mx-auto">
-            <MembershipUpgrade />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // If profile exists but not paid, will be redirected to payment page
+  // This component will not render for users with unpaid profiles due to the redirect effect above
 
   // If no profile exists, show profile creation only
   return (
@@ -184,7 +152,7 @@ const Membership = () => {
             Create Your Escort Profile
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Start by creating your complete escort profile. Your profile will be saved and you can publish it later.
+            Start by creating your complete escort profile. Your profile will be saved permanently and you can publish it with payment.
           </p>
           
           <Button 
@@ -208,7 +176,7 @@ const Membership = () => {
             </CardHeader>
             <CardContent>
               <p className="text-blue-700 mb-4">
-                Create your complete escort profile with photos, services, contact details, and rates. Your profile will be saved permanently.
+                Create your complete escort profile with photos, services, contact details, and rates. Your profile will be saved permanently and you can activate it with payment.
               </p>
               <Button 
                 onClick={handleCreateProfile}

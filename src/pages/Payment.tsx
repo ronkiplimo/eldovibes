@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CreditCard, CheckCircle, Phone, AlertCircle, ArrowLeft, Edit } from 'lucide-react';
+import { Loader2, CreditCard, CheckCircle, Phone, AlertCircle, ArrowLeft, Edit, User, MapPin, DollarSign } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembership, useInitiateMpesaPayment } from '@/hooks/useMembership';
@@ -176,7 +176,8 @@ const Payment = () => {
           </p>
         </div>
 
-        <Card className="mb-6 bg-green-50 border-green-200">
+        {/* Profile Summary Card */}
+        <Card className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-800">
               <CheckCircle className="w-5 h-5" />
@@ -184,35 +185,81 @@ const Payment = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <p className="text-green-700">
-                Your escort profile is ready and saved. Complete payment to make it visible to clients.
+            <div className="space-y-4">
+              <p className="text-green-700 mb-4">
+                Your escort profile is ready and saved permanently. Complete payment to make it visible to clients.
               </p>
               
-              <div className="p-3 bg-white border border-green-200 rounded">
-                <h5 className="font-medium text-green-800 mb-2">Profile Summary:</h5>
-                <ul className="text-sm text-green-700 space-y-1">
-                  <li>• <strong>Name:</strong> {escortProfile.stage_name}</li>
-                  <li>• <strong>Location:</strong> {escortProfile.location}</li>
-                  <li>• <strong>Rate:</strong> KES {escortProfile.hourly_rate}/hr</li>
-                  <li>• <strong>Category:</strong> {escortProfile.category}</li>
-                  <li>• <strong>Services:</strong> {escortProfile.services_offered?.length || 0} listed</li>
-                </ul>
+              {/* Profile Summary */}
+              <div className="bg-white border border-green-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h5 className="font-semibold text-green-800">Profile Summary</h5>
+                  <Button 
+                    onClick={() => navigate('/escort-setup?edit=true')}
+                    variant="outline"
+                    size="sm"
+                    className="text-green-700 border-green-300 hover:bg-green-50"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-green-600" />
+                    <span className="text-green-700">
+                      <strong>Name:</strong> {escortProfile.stage_name}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-700">
+                      <strong>Age:</strong> {escortProfile.age} years
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-green-600" />
+                    <span className="text-green-700">
+                      <strong>Location:</strong> {escortProfile.location}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-green-600" />
+                    <span className="text-green-700">
+                      <strong>Rate:</strong> KES {escortProfile.hourly_rate}/hr
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-700">
+                      <strong>Category:</strong> {escortProfile.category}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-700">
+                      <strong>Services:</strong> {escortProfile.services_offered?.length || 0} listed
+                    </span>
+                  </div>
+                </div>
+                
+                {escortProfile.bio && (
+                  <div className="mt-3 pt-3 border-t border-green-100">
+                    <span className="text-green-700 text-sm">
+                      <strong>Bio:</strong> {escortProfile.bio.substring(0, 150)}
+                      {escortProfile.bio.length > 150 ? '...' : ''}
+                    </span>
+                  </div>
+                )}
               </div>
-              
-              <Button 
-                onClick={() => navigate('/escort-setup?edit=true')}
-                variant="outline"
-                size="sm"
-                className="w-full"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Button>
             </div>
           </CardContent>
         </Card>
 
+        {/* Payment Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

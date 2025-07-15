@@ -169,15 +169,17 @@ const EscortSetup = () => {
       queryClient.invalidateQueries({ queryKey: ['escort-profile-payment'] });
       queryClient.invalidateQueries({ queryKey: ['membership'] });
       
+      // Show success message
       toast({
-        title: isEditing ? 'Profile Updated Successfully!' : 'Profile Saved Successfully!',
-        description: isEditing ? 'Your changes have been saved.' : 'Your profile has been created and saved.',
+        title: isEditing ? 'Profile Updated Successfully!' : 'Profile Created Successfully!',
+        description: isEditing ? 'Your changes have been saved.' : 'Your profile has been saved permanently. Complete payment to make it visible to clients.',
       });
       
-      // Navigate based on action
+      // Navigate based on action - ALWAYS redirect to payment for new profiles
       if (isEditing) {
         navigate('/dashboard', { replace: true });
       } else {
+        // For new profiles, ALWAYS redirect to payment page
         navigate('/payment', { replace: true });
       }
     },
@@ -251,26 +253,26 @@ const EscortSetup = () => {
           <p className="text-gray-600">
             {isEditing 
               ? 'Update your profile details below. Your changes will be saved immediately.'
-              : 'Complete your profile with all details. Your profile will be saved and you can publish it later.'
+              : 'Complete your profile with all details. Your profile will be saved permanently and you can publish it with payment.'
             }
           </p>
         </div>
 
         {!isEditing && (
-          <Card className="mb-6 bg-blue-50 border-blue-200">
+          <Card className="mb-6 bg-green-50 border-green-200">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                 <div>
-                  <h3 className="font-semibold text-blue-900 mb-1">Profile Creation Process:</h3>
-                  <ol className="text-blue-800 text-sm space-y-1">
+                  <h3 className="font-semibold text-green-900 mb-1">Profile Creation Process:</h3>
+                  <ol className="text-green-800 text-sm space-y-1">
                     <li>1. Fill in all your profile details (photos, services, contact info)</li>
                     <li>2. Save your complete profile (it will be stored permanently)</li>
-                    <li>3. Go to membership page to publish your profile with payment</li>
-                    <li>4. Your profile becomes visible to clients after payment</li>
+                    <li>3. Complete payment to make your profile visible to clients</li>
+                    <li>4. Your profile goes live immediately after payment</li>
                   </ol>
-                  <p className="text-blue-700 text-xs mt-2">
-                    Note: Your profile will be saved permanently even without payment. You can edit it anytime.
+                  <p className="text-green-700 text-xs mt-2">
+                    Note: Your profile is saved permanently even without payment. You can edit it anytime.
                   </p>
                 </div>
               </div>
@@ -434,9 +436,9 @@ const EscortSetup = () => {
               <p className="text-xs text-gray-500">Upload a professional photo to attract more clients</p>
             </div>
 
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-medium text-green-900 mb-2">💡 {isEditing ? 'Profile Update' : 'Profile Saving'}</h4>
-              <ul className="text-green-800 text-sm space-y-1">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900 mb-2">💡 {isEditing ? 'Profile Update' : 'Profile Saving'}</h4>
+              <ul className="text-blue-800 text-sm space-y-1">
                 {isEditing ? (
                   <>
                     <li>• Your profile changes will be saved immediately</li>
