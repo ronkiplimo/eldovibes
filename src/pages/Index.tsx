@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -147,52 +146,6 @@ const Index = () => {
             >
               Become an Escort - Start Earning Today
             </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Why Choose EldoVibes?
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Experience the finest companion services with our verified and professional escorts
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card>
-              <CardHeader>
-                <Shield className="w-12 h-12 text-purple-600 mb-4" />
-                <CardTitle>Verified Profiles</CardTitle>
-                <CardDescription>
-                  All our companions are thoroughly verified for your safety and peace of mind
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <Star className="w-12 h-12 text-purple-600 mb-4" />
-                <CardTitle>Premium Quality</CardTitle>
-                <CardDescription>
-                  Connect with high-class companions who provide exceptional experiences
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <Users className="w-12 h-12 text-purple-600 mb-4" />
-                <CardTitle>Discreet Service</CardTitle>
-                <CardDescription>
-                  Your privacy is our priority with secure messaging and confidential bookings
-                </CardDescription>
-              </CardHeader>
-            </Card>
           </div>
         </div>
       </section>

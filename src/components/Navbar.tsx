@@ -9,7 +9,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Heart, User, LogOut, Settings, MessageCircle, LayoutDashboard, Shield } from 'lucide-react';
+import { Heart, User, LogOut, Settings, MessageCircle, LayoutDashboard, Shield, Info } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminCheck } from '@/hooks/useAdmin';
 
@@ -46,6 +46,13 @@ const Navbar = () => {
           </Link>
 
           <div className="flex items-center space-x-4">
+            <Link to="/about">
+              <Button variant="ghost" size="sm">
+                <Info className="w-4 h-4 mr-2" />
+                About
+              </Button>
+            </Link>
+
             {user ? (
               <>
                 <Link to="/messages">
