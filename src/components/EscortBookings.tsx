@@ -10,7 +10,7 @@ interface EscortBookingsProps {
   escortUserId: string;
 }
 
-interface BookingWithProfile {
+interface Booking {
   id: string;
   client_id: string;
   escort_id: string;
@@ -21,37 +21,49 @@ interface BookingWithProfile {
   service_type: string;
   special_requests?: string;
   created_at: string;
-  profiles?: {
-    full_name: string;
-  } | null;
+}
+
+interface BookingWithProfile extends Booking {
+  client_name?: string;
 }
 
 const EscortBookings = ({ escortUserId }: EscortBookingsProps) => {
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['escort-bookings', escortUserId],
     queryFn: async (): Promise<BookingWithProfile[]> => {
-      const { data, error } = await supabase
+      // First get the bookings
+      const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
-        .select(`
-          id,
-          client_id,
-          escort_id,
-          booking_date,
-          duration_hours,
-          total_amount,
-          status,
-          service_type,
-          special_requests,
-          created_at,
-          profiles:client_id (
-            full_name
-          )
-        `)
+        .select('*')
         .eq('escort_id', escortUserId)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data || [];
+      if (bookingsError) throw bookingsError;
+      if (!bookingsData) return [];
+
+      // Then get the client profiles for these bookings
+      const clientIds = [...new Set(bookingsData.map(b => b.client_id))];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', clientIds);
+      
+      if (profilesError) {
+        console.warn('Could not fetch client profiles:', profilesError);
+        // Return bookings without client names if profiles fetch fails
+        return bookingsData.map(booking => ({
+          ...booking,
+          client_name: undefined
+        }));
+      }
+
+      // Combine the data
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p.full_name]) || []);
+      
+      return bookingsData.map(booking => ({
+        ...booking,
+        client_name: profilesMap.get(booking.client_id)
+      }));
     }
   });
 
@@ -119,7 +131,7 @@ const EscortBookings = ({ escortUserId }: EscortBookingsProps) => {
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-gray-500" />
                     <span className="text-sm font-medium">
-                      {booking.profiles?.full_name || 'Unknown Client'}
+                      {booking.client_name || 'Unknown Client'}
                     </span>
                     {getStatusBadge(booking.status)}
                   </div>
