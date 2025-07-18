@@ -69,7 +69,7 @@ const Payment = () => {
     // If user doesn't have a profile, redirect to create one
     if (!profileLoading && !escortProfile) {
       console.log('No profile found, redirecting to escort setup');
-      navigate('/membership');
+      navigate('/escort-setup');
       return;
     }
 
