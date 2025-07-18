@@ -277,16 +277,7 @@ const Dashboard = () => {
                       </div>
                     )}
 
-                    <div className="pt-3 border-t space-y-2">
-                      <Button 
-                        onClick={escortStatus.actionHandler}
-                        className="w-full"
-                        variant={escortProfile.verified ? "outline" : "default"}
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        {escortStatus.action}
-                      </Button>
-                      
+                    <div className="pt-3 border-t">
                       {!escortProfile.verified && membership?.status !== 'paid' && (
                         <Button 
                           onClick={handleUpgradeMembership}
