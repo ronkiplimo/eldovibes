@@ -19,27 +19,37 @@ const Membership = () => {
   const { data: escortProfile, isLoading: profileLoading, refetch: refetchProfile } = useQuery({
     queryKey: ['escort-profile-membership', user?.id],
     queryFn: async () => {
-      if (!user?.id) return null;
-      
-      console.log('Membership page fetching escort profile for user:', user.id);
-      
-      const { data, error } = await supabase
-        .from('escort_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Membership page escort profile fetch error:', error);
+      if (!user?.id) {
+        console.log('No user ID available');
         return null;
       }
       
-      console.log('Membership page escort profile data:', data);
-      return data;
+      console.log('Membership page fetching escort profile for user:', user.id);
+      
+      try {
+        const { data, error } = await supabase
+          .from('escort_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Membership page escort profile fetch error:', error);
+          // Don't throw error, just return null to handle gracefully
+          return null;
+        }
+        
+        console.log('Membership page escort profile data:', data);
+        return data;
+      } catch (err) {
+        console.error('Unexpected error fetching escort profile:', err);
+        return null;
+      }
     },
     enabled: !!user?.id,
     refetchOnWindowFocus: false,
     staleTime: 5000,
+    retry: 1, // Only retry once to avoid spam
   });
 
   // Refresh data when component mounts or user changes

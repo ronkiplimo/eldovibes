@@ -25,26 +25,39 @@ const Payment = () => {
   
   const initiateMpesaPayment = useInitiateMpesaPayment();
 
-  // Check if user has escort profile
+  // Check if user has escort profile with better error handling
   const { data: escortProfile, isLoading: profileLoading } = useQuery({
     queryKey: ['escort-profile-payment', user?.id],
     queryFn: async () => {
-      if (!user?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('escort_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Payment page escort profile fetch error:', error);
+      if (!user?.id) {
+        console.log('No user ID available for payment page');
         return null;
       }
       
-      return data;
+      console.log('Payment page fetching escort profile for user:', user.id);
+      
+      try {
+        const { data, error } = await supabase
+          .from('escort_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Payment page escort profile fetch error:', error);
+          // Don't throw error, just return null to handle gracefully
+          return null;
+        }
+        
+        console.log('Payment page escort profile data:', data);
+        return data;
+      } catch (err) {
+        console.error('Unexpected error fetching escort profile on payment page:', err);
+        return null;
+      }
     },
     enabled: !!user?.id,
+    retry: 1, // Only retry once to avoid spam
   });
 
   useEffect(() => {
@@ -55,12 +68,14 @@ const Payment = () => {
 
     // If user doesn't have a profile, redirect to create one
     if (!profileLoading && !escortProfile) {
-      navigate('/escort-setup');
+      console.log('No profile found, redirecting to escort setup');
+      navigate('/membership');
       return;
     }
 
     // If user is already paid, redirect to dashboard
     if (membership?.status === 'paid') {
+      console.log('User already paid, redirecting to dashboard');
       navigate('/dashboard');
       return;
     }
@@ -149,7 +164,7 @@ const Payment = () => {
   }
 
   if (!escortProfile) {
-    return null; // Will redirect to escort-setup
+    return null; // Will redirect to membership/escort-setup
   }
 
   return (
