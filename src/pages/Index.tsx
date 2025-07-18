@@ -71,28 +71,28 @@ const Index = () => {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <Navbar />
       
-      {/* Hero Section - Optimized for mobile */}
-      <section className="bg-gradient-to-br from-purple-600 to-pink-600 text-white py-12 md:py-20">
+      {/* Hero Section - Mobile optimized with proper overflow handling */}
+      <section className="bg-gradient-to-br from-purple-600 to-pink-600 text-white py-8 md:py-20 overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-3xl md:text-4xl lg:text-6xl font-bold mb-4 md:mb-6">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-4 md:mb-6 break-words">
             Welcome to EldoVibes
           </h1>
-          <p className="text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 max-w-3xl mx-auto px-2">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 max-w-3xl mx-auto px-2 break-words">
             Connect with premium companions for unforgettable experiences in Eldoret and beyond
           </p>
           
-          {/* Search Bar - Mobile optimized */}
+          {/* Search Bar - Mobile optimized with proper sizing */}
           <Card className="max-w-4xl mx-auto bg-white/10 backdrop-blur-md border-white/20">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex flex-col gap-3 md:gap-4">
-                {/* Location and Category - Stack on mobile */}
-                <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
-                  <div className="flex-1">
+            <CardContent className="p-3 sm:p-4 md:p-6">
+              <div className="flex flex-col gap-3 md:gap-4 w-full">
+                {/* Location and Category - Stack on mobile with proper width constraints */}
+                <div className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full">
+                  <div className="flex-1 min-w-0">
                     <Select value={searchLocation} onValueChange={setSearchLocation}>
-                      <SelectTrigger className="bg-white/20 border-white/30 text-white h-12">
+                      <SelectTrigger className="bg-white/20 border-white/30 text-white h-12 w-full">
                         <SelectValue placeholder="Select location" />
                       </SelectTrigger>
                       <SelectContent>
@@ -105,9 +105,9 @@ const Index = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="bg-white/20 border-white/30 text-white h-12">
+                      <SelectTrigger className="bg-white/20 border-white/30 text-white h-12 w-full">
                         <SelectValue placeholder="Select service category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -122,23 +122,23 @@ const Index = () => {
                   </div>
                 </div>
                 
-                {/* Buttons - Stack on mobile */}
-                <div className="flex flex-col sm:flex-row gap-2 md:gap-2">
+                {/* Buttons - Stack on mobile with proper width constraints */}
+                <div className="flex flex-col sm:flex-row gap-2 md:gap-2 w-full">
                   <Button 
                     onClick={handleSearch}
-                    className="bg-white text-purple-600 hover:bg-gray-100 h-12 text-base flex-1"
+                    className="bg-white text-purple-600 hover:bg-gray-100 h-12 text-base flex-1 min-w-0"
                     disabled={isLoading}
                   >
-                    <Search className="w-4 h-4 mr-2" />
-                    Search
+                    <Search className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">Search</span>
                   </Button>
                   <Button
                     onClick={() => setShowAdvancedSearch(true)}
                     variant="outline"
-                    className="border-2 border-white bg-white/10 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm h-12 sm:w-auto"
+                    className="border-2 border-white bg-white/10 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm h-12 sm:w-auto min-w-0"
                   >
-                    <Filter className="w-4 h-4 sm:mr-0 md:mr-2" />
-                    <span className="sm:hidden md:inline">Filters</span>
+                    <Filter className="w-4 h-4 sm:mr-0 md:mr-2 flex-shrink-0" />
+                    <span className="sm:hidden md:inline ml-1">Filters</span>
                   </Button>
                 </div>
               </div>
@@ -149,19 +149,19 @@ const Index = () => {
           <div className="mt-6 md:mt-8 px-4">
             <Button 
               onClick={handleBecomeEscort}
-              className="bg-white text-purple-600 hover:bg-gray-100 text-base md:text-lg px-6 md:px-8 py-3 w-full sm:w-auto"
+              className="bg-white text-purple-600 hover:bg-gray-100 text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-3 w-full sm:w-auto max-w-full break-words"
             >
-              Become an Escort - Start Earning Today
+              <span className="block sm:inline">Become an Escort - Start Earning Today</span>
             </Button>
           </div>
         </div>
       </section>
 
       {/* Featured Escorts */}
-      <section className="py-12 md:py-16 bg-white">
+      <section className="py-8 sm:py-12 md:py-16 bg-white overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 md:mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-6 sm:mb-8 md:mb-12">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 break-words">
               {isSearching ? 'Search Results' : 'Featured Companions'}
             </h2>
             {(isSearching || advancedFilters) && (
