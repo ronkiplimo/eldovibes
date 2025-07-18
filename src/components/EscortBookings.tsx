@@ -10,21 +10,48 @@ interface EscortBookingsProps {
   escortUserId: string;
 }
 
+interface BookingWithProfile {
+  id: string;
+  client_id: string;
+  escort_id: string;
+  booking_date: string;
+  duration_hours: number;
+  total_amount: number;
+  status: string;
+  service_type: string;
+  special_requests?: string;
+  created_at: string;
+  profiles?: {
+    full_name: string;
+  } | null;
+}
+
 const EscortBookings = ({ escortUserId }: EscortBookingsProps) => {
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['escort-bookings', escortUserId],
-    queryFn: async () => {
+    queryFn: async (): Promise<BookingWithProfile[]> => {
       const { data, error } = await supabase
         .from('bookings')
         .select(`
-          *,
-          profiles!client_id(full_name)
+          id,
+          client_id,
+          escort_id,
+          booking_date,
+          duration_hours,
+          total_amount,
+          status,
+          service_type,
+          special_requests,
+          created_at,
+          profiles:client_id (
+            full_name
+          )
         `)
         .eq('escort_id', escortUserId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
