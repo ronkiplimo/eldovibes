@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Search, MapPin, Star, Users, Shield, Filter } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import EscortListings from '@/components/EscortListings';
@@ -20,6 +21,7 @@ import EldoVibesAssistant from '@/components/EldoVibesAssistant';
 const Index = () => {
   const [searchLocation, setSearchLocation] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchName, setSearchName] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState(null);
@@ -36,8 +38,15 @@ const Index = () => {
     !!advancedFilters
   );
 
-  const escorts = advancedFilters ? advancedResults : (isSearching ? searchResults : allEscorts);
+  let escorts = advancedFilters ? advancedResults : (isSearching ? searchResults : allEscorts);
   const isLoading = advancedFilters ? loadingAdvanced : (isSearching ? loadingSearch : loadingAll);
+
+  // Filter by name if search term is provided
+  if (isSearching && searchName && escorts) {
+    escorts = escorts.filter(escort => 
+      escort.stage_name?.toLowerCase().includes(searchName.toLowerCase())
+    );
+  }
 
   const handleSearch = () => {
     setIsSearching(true);
@@ -52,6 +61,7 @@ const Index = () => {
   const clearFilters = () => {
     setSearchLocation('');
     setSelectedCategory('');
+    setSearchName('');
     setIsSearching(false);
     setAdvancedFilters(null);
   };
@@ -74,7 +84,6 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <Navbar />
       
-      {/* Hero Section - Mobile optimized with proper overflow handling */}
       <section className="bg-gradient-to-br from-purple-600 to-pink-600 text-white py-8 md:py-20 overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-4 md:mb-6 break-words">
@@ -84,11 +93,20 @@ const Index = () => {
             Connect with premium companions for unforgettable experiences in Eldoret and beyond
           </p>
           
-          {/* Search Bar - Mobile optimized with proper sizing */}
           <Card className="max-w-4xl mx-auto bg-white/10 backdrop-blur-md border-white/20">
             <CardContent className="p-3 sm:p-4 md:p-6">
               <div className="flex flex-col gap-3 md:gap-4 w-full">
-                {/* Location and Category - Stack on mobile with proper width constraints */}
+                {/* Search Name Input */}
+                <div className="w-full">
+                  <Input
+                    placeholder="Search by escort name..."
+                    value={searchName}
+                    onChange={(e) => setSearchName(e.target.value)}
+                    className="bg-white/20 border-white/30 text-white placeholder:text-white/70 h-12 w-full"
+                  />
+                </div>
+                
+                {/* Location and Category */}
                 <div className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full">
                   <div className="flex-1 min-w-0">
                     <Select value={searchLocation} onValueChange={setSearchLocation}>
@@ -122,7 +140,7 @@ const Index = () => {
                   </div>
                 </div>
                 
-                {/* Buttons - Stack on mobile with proper width constraints */}
+                {/* Buttons */}
                 <div className="flex flex-col sm:flex-row gap-2 md:gap-2 w-full">
                   <Button 
                     onClick={handleSearch}
@@ -145,7 +163,6 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          {/* Become an Escort CTA - Mobile optimized */}
           <div className="mt-6 md:mt-8 px-4">
             <Button 
               onClick={handleBecomeEscort}
@@ -178,6 +195,11 @@ const Index = () => {
                     Advanced filters applied
                   </Badge>
                 )}
+                {searchName && (
+                  <Badge variant="secondary" className="text-sm w-full sm:w-auto justify-center">
+                    Searching: "{searchName}"
+                  </Badge>
+                )}
               </div>
             )}
           </div>
@@ -186,7 +208,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Advanced Search Modal */}
       {showAdvancedSearch && (
         <AdvancedSearch
           onSearch={handleAdvancedSearch}
@@ -194,10 +215,7 @@ const Index = () => {
         />
       )}
 
-      {/* EldoVibes Assistant */}
       <EldoVibesAssistant />
-
-      {/* Footer */}
       <Footer />
     </div>
   );

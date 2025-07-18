@@ -35,7 +35,6 @@ const Membership = () => {
         
         if (error) {
           console.error('Membership page escort profile fetch error:', error);
-          // Don't throw error, just return null to handle gracefully
           return null;
         }
         
@@ -49,10 +48,9 @@ const Membership = () => {
     enabled: !!user?.id,
     refetchOnWindowFocus: false,
     staleTime: 5000,
-    retry: 1, // Only retry once to avoid spam
+    retry: 1,
   });
 
-  // Refresh data when component mounts or user changes
   useEffect(() => {
     if (user?.id) {
       refetchProfile();
@@ -60,7 +58,6 @@ const Membership = () => {
     }
   }, [user?.id, refetchProfile, refetchMembership]);
 
-  // FIXED: Redirect logic - if user has profile but no payment, go to payment page
   useEffect(() => {
     if (!profileLoading && escortProfile && membership?.status !== 'paid') {
       console.log('User has profile but not paid, redirecting to payment');
@@ -88,7 +85,6 @@ const Membership = () => {
     navigate('/escort-setup?edit=true');
   };
 
-  // Loading state
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -103,7 +99,6 @@ const Membership = () => {
     );
   }
 
-  // If profile exists and user is paid, show success
   if (hasProfile && isPaidMember) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -146,10 +141,6 @@ const Membership = () => {
     );
   }
 
-  // If profile exists but not paid, will be redirected to payment page
-  // This component will not render for users with unpaid profiles due to the redirect effect above
-
-  // If no profile exists, show profile creation only
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />

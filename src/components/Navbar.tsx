@@ -42,7 +42,7 @@ const Navbar = () => {
           </Link>
 
           <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 min-w-0">
-            <Link to="/about" className="hidden xs:block">
+            <Link to="/about">
               <Button variant="ghost" size="sm" className="p-2 sm:px-3">
                 <Info className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline ml-2">About</span>
@@ -88,12 +88,6 @@ const Navbar = () => {
                     <DropdownMenuItem onClick={handleProfileClick}>
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="sm:hidden">
-                      <Link to="/about" className="flex items-center w-full">
-                        <Info className="mr-2 h-4 w-4" />
-                        <span>About</span>
-                      </Link>
                     </DropdownMenuItem>
                     {isAdmin && (
                       <DropdownMenuItem onClick={handleAdminClick}>
