@@ -9,7 +9,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Heart, User, LogOut, Settings, MessageCircle, LayoutDashboard, Shield, Info } from 'lucide-react';
+import { Heart, User, LogOut, MessageCircle, LayoutDashboard, Shield, Info } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminCheck } from '@/hooks/useAdmin';
 
@@ -23,10 +23,6 @@ const Navbar = () => {
   };
 
   const handleProfileClick = () => {
-    navigate('/dashboard');
-  };
-
-  const handleSettingsClick = () => {
     navigate('/dashboard');
   };
 
@@ -45,42 +41,42 @@ const Navbar = () => {
             </span>
           </Link>
 
-          <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 min-w-0">
+          <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 min-w-0">
             <Link to="/about" className="hidden xs:block">
-              <Button variant="ghost" size="sm" className="p-1 sm:p-2">
-                <Info className="w-4 h-4 sm:mr-2 flex-shrink-0" />
-                <span className="hidden sm:inline">About</span>
+              <Button variant="ghost" size="sm" className="p-2 sm:px-3">
+                <Info className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline ml-2">About</span>
               </Button>
             </Link>
 
             {user ? (
               <>
                 <Link to="/messages">
-                  <Button variant="ghost" size="sm" className="p-1 sm:p-2">
-                    <MessageCircle className="w-4 h-4 sm:mr-2 flex-shrink-0" />
-                    <span className="hidden sm:inline">Messages</span>
+                  <Button variant="ghost" size="sm" className="p-2 sm:px-3">
+                    <MessageCircle className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden sm:inline ml-2">Messages</span>
                   </Button>
                 </Link>
                 
                 <Link to="/dashboard">
-                  <Button variant="ghost" size="sm" className="p-1 sm:p-2">
-                    <LayoutDashboard className="w-4 h-4 sm:mr-2 flex-shrink-0" />
-                    <span className="hidden xs:inline">Dashboard</span>
+                  <Button variant="ghost" size="sm" className="p-2 sm:px-3">
+                    <LayoutDashboard className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden xs:inline ml-2">Dashboard</span>
                   </Button>
                 </Link>
 
                 {isAdmin && (
                   <Link to="/admin" className="hidden sm:block">
-                    <Button variant="ghost" size="sm" className="p-1 sm:p-2">
-                      <Shield className="w-4 h-4 sm:mr-2 flex-shrink-0" />
-                      <span className="hidden md:inline">Admin</span>
+                    <Button variant="ghost" size="sm" className="p-2 sm:px-3">
+                      <Shield className="w-4 h-4 flex-shrink-0" />
+                      <span className="hidden md:inline ml-2">Admin</span>
                     </Button>
                   </Link>
                 )}
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full flex-shrink-0">
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full flex-shrink-0 ml-2">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback>
                           {user.email?.charAt(0).toUpperCase()}
@@ -92,10 +88,6 @@ const Navbar = () => {
                     <DropdownMenuItem onClick={handleProfileClick}>
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleSettingsClick}>
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem className="sm:hidden">
                       <Link to="/about" className="flex items-center w-full">
