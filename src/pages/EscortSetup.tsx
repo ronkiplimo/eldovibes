@@ -395,10 +395,28 @@ const EscortSetup = () => {
                 id="dateOfBirth"
                 type="date"
                 value={formData.dateOfBirth}
-                onChange={(e) => setFormData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                onChange={(e) => {
+                  const newDateOfBirth = e.target.value;
+                  // Calculate age from date of birth
+                  const today = new Date();
+                  const birthDate = new Date(newDateOfBirth);
+                  let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+                  const monthDiff = today.getMonth() - birthDate.getMonth();
+                  
+                  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    calculatedAge--;
+                  }
+                  
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    dateOfBirth: newDateOfBirth,
+                    age: Math.max(calculatedAge, 18) // Ensure minimum age of 18
+                  }));
+                }}
                 max={new Date(Date.now() - 18 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
                 required
               />
+              <p className="text-xs text-gray-500">Age will be calculated automatically from your date of birth</p>
             </div>
 
             <div className="space-y-2">

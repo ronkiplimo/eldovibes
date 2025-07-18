@@ -32,10 +32,11 @@ const MembershipUpgrade = () => {
         .from('escort_profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (error) {
+        console.error('MembershipUpgrade escort profile fetch error:', error);
+        return null;
       }
       
       return data;
