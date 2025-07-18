@@ -71,7 +71,8 @@ const EscortManagement = () => {
         description: `Escort ${newStatus ? 'verified' : 'unverified'} successfully`
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Verification error:', error);
       toast({
         title: 'Error',
         description: 'Failed to update escort verification status',
@@ -106,7 +107,8 @@ const EscortManagement = () => {
         description: 'Escort profile activated by admin override'
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Override error:', error);
       toast({
         title: 'Error',
         description: 'Failed to activate escort profile',
@@ -133,10 +135,10 @@ const EscortManagement = () => {
 
   const renderEscortCard = (escort: any, isPending = false) => (
     <div key={escort.id} className="border rounded-lg p-4">
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <h3 className="font-medium">{escort.stage_name}</h3>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="space-y-2 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-medium text-lg">{escort.stage_name}</h3>
             {escort.verified ? (
               <Badge variant="default" className="bg-green-500">
                 <CheckCircle className="w-3 h-3 mr-1" />
@@ -151,7 +153,7 @@ const EscortManagement = () => {
             {getAvailabilityBadge(escort.availability_status)}
             {escort.category && <Badge variant="outline">{escort.category}</Badge>}
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 space-y-1">
             <p>Age: {escort.age || 'Not specified'} | Rate: ${escort.hourly_rate}/hr</p>
             <p>Location: {escort.location || 'Not specified'}</p>
             <p>Rating: {escort.rating}/5 ({escort.total_reviews} reviews)</p>
@@ -163,8 +165,8 @@ const EscortManagement = () => {
             )}
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+        <div className="flex flex-col sm:flex-row gap-2 lg:flex-col xl:flex-row">
+          <Button variant="outline" size="sm" className="whitespace-nowrap">
             <Eye className="w-4 h-4 mr-1" />
             View Profile
           </Button>
@@ -175,7 +177,7 @@ const EscortManagement = () => {
               size="sm"
               onClick={() => adminOverrideMutation.mutate({ escortId: escort.id })}
               disabled={adminOverrideMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
             >
               <Shield className="w-4 h-4 mr-1" />
               Override & Activate
@@ -186,6 +188,7 @@ const EscortManagement = () => {
               size="sm"
               onClick={() => verifyEscortMutation.mutate({ escortId: escort.id, verified: escort.verified })}
               disabled={verifyEscortMutation.isPending}
+              className="whitespace-nowrap"
             >
               {escort.verified ? (
                 <>
@@ -208,29 +211,33 @@ const EscortManagement = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Escort Management
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <span>Escort Management</span>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search escorts..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64"
+              className="pl-10 w-full sm:w-64"
             />
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="verified" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="verified" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="verified" className="flex items-center gap-2 text-xs sm:text-sm">
               <CheckCircle className="w-4 h-4" />
-              Active Profiles ({verifiedEscorts.length})
+              <span className="hidden sm:inline">Active Profiles</span>
+              <span className="sm:hidden">Active</span>
+              ({verifiedEscorts.length})
             </TabsTrigger>
-            <TabsTrigger value="pending" className="flex items-center gap-2">
+            <TabsTrigger value="pending" className="flex items-center gap-2 text-xs sm:text-sm">
               <Clock className="w-4 h-4" />
-              Pending Payment ({pendingEscorts.length})
+              <span className="hidden sm:inline">Pending Payment</span>
+              <span className="sm:hidden">Pending</span>
+              ({pendingEscorts.length})
             </TabsTrigger>
           </TabsList>
 
@@ -274,9 +281,9 @@ const EscortManagement = () => {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                   <div className="flex items-center gap-2 text-blue-800">
                     <Shield className="w-5 h-5" />
-                    <strong>Admin Override Available</strong>
+                    <strong className="text-sm sm:text-base">Admin Override Available</strong>
                   </div>
-                  <p className="text-blue-700 mt-1 text-sm">
+                  <p className="text-blue-700 mt-1 text-xs sm:text-sm">
                     These profiles are awaiting payment. You can activate them manually if there are payment processing delays.
                   </p>
                 </div>
