@@ -20,14 +20,18 @@ const EscortManagement = () => {
   const { data: escorts, isLoading } = useQuery({
     queryKey: ['admin-escorts', searchTerm],
     queryFn: async () => {
-      // Use service role to bypass RLS for admin access
-      const { data, error } = await supabase.rpc('get_all_escort_profiles_admin', {
-        search_term: searchTerm || ''
-      });
-      
-      if (error) {
-        console.error('Admin escort fetch error:', error);
-        // Fallback to regular query if RPC fails
+      // Try the admin function first
+      try {
+        const { data, error } = await supabase.rpc('get_all_escort_profiles_admin', {
+          search_term: searchTerm || ''
+        });
+        
+        if (error) throw error;
+        return data;
+      } catch (error) {
+        console.error('Admin RPC failed, using fallback:', error);
+        
+        // Fallback to regular query
         let query = supabase
           .from('escort_profiles')
           .select('*')
@@ -37,12 +41,10 @@ const EscortManagement = () => {
           query = query.ilike('stage_name', `%${searchTerm}%`);
         }
 
-        const fallbackResult = await query;
-        if (fallbackResult.error) throw fallbackResult.error;
-        return fallbackResult.data;
+        const { data, error: fallbackError } = await query;
+        if (fallbackError) throw fallbackError;
+        return data;
       }
-      
-      return data;
     }
   });
 

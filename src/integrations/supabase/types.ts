@@ -384,7 +384,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_all_escort_profiles_admin: {
+        Args: { search_term?: string }
+        Returns: {
+          id: string
+          user_id: string
+          stage_name: string
+          bio: string
+          age: number
+          category: string
+          services_offered: string[]
+          hourly_rate: number
+          availability_status: Database["public"]["Enums"]["availability_status"]
+          location: string
+          verified: boolean
+          rating: number
+          total_reviews: number
+          created_at: string
+          updated_at: string
+          profile_image_url: string
+          phone_number: string
+          date_of_birth: string
+          is_active: boolean
+        }[]
+      }
     }
     Enums: {
       availability_status: "available" | "busy" | "offline"
