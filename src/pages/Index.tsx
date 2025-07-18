@@ -21,7 +21,6 @@ import EldoVibesAssistant from '@/components/EldoVibesAssistant';
 const Index = () => {
   const [searchLocation, setSearchLocation] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [searchName, setSearchName] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState(null);
@@ -41,12 +40,6 @@ const Index = () => {
   let escorts = advancedFilters ? advancedResults : (isSearching ? searchResults : allEscorts);
   const isLoading = advancedFilters ? loadingAdvanced : (isSearching ? loadingSearch : loadingAll);
 
-  // Enhanced name filtering with case-insensitive partial matching
-  if (isSearching && searchName && escorts) {
-    escorts = escorts.filter(escort => 
-      escort.stage_name?.toLowerCase().includes(searchName.toLowerCase().trim())
-    );
-  }
 
   const handleSearch = () => {
     setIsSearching(true);
@@ -61,7 +54,6 @@ const Index = () => {
   const clearFilters = () => {
     setSearchLocation('');
     setSelectedCategory('');
-    setSearchName('');
     setIsSearching(false);
     setAdvancedFilters(null);
   };
@@ -96,16 +88,6 @@ const Index = () => {
           <Card className="max-w-4xl mx-auto bg-white/10 backdrop-blur-md border-white/20">
             <CardContent className="p-3 sm:p-4 md:p-6">
               <div className="flex flex-col gap-3 md:gap-4 w-full">
-                {/* Search Name Input */}
-                <div className="w-full">
-                  <Input
-                    placeholder="Search by escort name..."
-                    value={searchName}
-                    onChange={(e) => setSearchName(e.target.value)}
-                    className="bg-white/20 border-white/30 text-white placeholder:text-white/70 h-12 w-full"
-                  />
-                </div>
-                
                 {/* Location and Category */}
                 <div className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full">
                   <div className="flex-1 min-w-0">
@@ -193,11 +175,6 @@ const Index = () => {
                 {advancedFilters && (
                   <Badge variant="secondary" className="text-sm w-full sm:w-auto justify-center">
                     Advanced filters applied
-                  </Badge>
-                )}
-                {searchName && (
-                  <Badge variant="secondary" className="text-sm w-full sm:w-auto justify-center">
-                    Searching: "{searchName}"
                   </Badge>
                 )}
               </div>
