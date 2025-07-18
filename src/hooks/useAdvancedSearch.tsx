@@ -13,6 +13,7 @@ interface SearchFilters {
   verifiedOnly?: boolean;
   availableOnly?: boolean;
   services?: string[];
+  searchName?: string;
 }
 
 export const useAdvancedSearch = (filters: SearchFilters, enabled: boolean = true) => {
@@ -31,6 +32,11 @@ export const useAdvancedSearch = (filters: SearchFilters, enabled: boolean = tru
       // Category filter
       if (filters.category) {
         query = query.eq('category', filters.category);
+      }
+
+      // Name search filter - case insensitive
+      if (filters.searchName) {
+        query = query.ilike('stage_name', `%${filters.searchName}%`);
       }
 
       // Age filters

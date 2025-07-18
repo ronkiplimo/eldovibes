@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, CreditCard, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Heart, CreditCard, CheckCircle, AlertTriangle, Edit } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembership } from '@/hooks/useMembership';
 import { supabase } from '@/integrations/supabase/client';
@@ -93,11 +93,11 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
     }
   });
 
-  const handleCreateProfile = async () => {
+  const handleProfileAction = async () => {
     if (!user) {
       toast({
         title: 'Authentication Required',
-        description: 'Please log in to create an escort profile.',
+        description: 'Please log in to manage your escort profile.',
         variant: 'destructive'
       });
       navigate('/auth');
@@ -110,11 +110,13 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
       return;
     }
 
+    // If profile exists, go to edit mode
     if (escortProfile) {
-      navigate('/escort-setup');
+      navigate('/escort-setup?edit=true');
       return;
     }
 
+    // Create new profile only if none exists
     setIsCreating(true);
     try {
       await createEscortProfileMutation.mutateAsync();
@@ -155,7 +157,7 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
 
     if (!escortProfile.verified) {
       return {
-        label: 'Pending Approval',
+        label: 'Pending Verification',
         color: 'bg-blue-100 text-blue-800',
         icon: Heart,
         description: 'Your profile is under review'
@@ -173,13 +175,14 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
   const status = getStatusDisplay();
   const StatusIcon = status.icon;
   const isPaidMember = membership?.status === 'paid';
+  const hasProfile = !!escortProfile;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Heart className="w-5 h-5 text-purple-600" />
-          Become an Escort
+          {hasProfile ? 'Escort Profile' : 'Become an Escort'}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -200,21 +203,23 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
             <CreditCard className="w-4 h-4 mr-2" />
             Upgrade to Premium - KES 800/month
           </Button>
-        ) : !escortProfile ? (
-          <Button 
-            onClick={handleCreateProfile}
-            disabled={isCreating || createEscortProfileMutation.isPending}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-          >
-            {isCreating || createEscortProfileMutation.isPending ? 'Creating...' : 'Create Escort Profile'}
-          </Button>
         ) : (
           <Button 
-            onClick={() => navigate('/escort-setup')}
-            className="w-full"
-            variant="outline"
+            onClick={handleProfileAction}
+            disabled={isCreating || createEscortProfileMutation.isPending}
+            className={`w-full ${hasProfile ? '' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'}`}
+            variant={hasProfile ? "outline" : "default"}
           >
-            {status.label === 'Setup Required' ? 'Complete Setup' : 'Edit Profile'}
+            {isCreating || createEscortProfileMutation.isPending ? (
+              'Creating...'
+            ) : hasProfile ? (
+              <>
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Profile
+              </>
+            ) : (
+              'Create Escort Profile'
+            )}
           </Button>
         )}
       </CardContent>

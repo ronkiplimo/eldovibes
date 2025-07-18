@@ -41,10 +41,10 @@ const Index = () => {
   let escorts = advancedFilters ? advancedResults : (isSearching ? searchResults : allEscorts);
   const isLoading = advancedFilters ? loadingAdvanced : (isSearching ? loadingSearch : loadingAll);
 
-  // Filter by name if search term is provided
+  // Enhanced name filtering with case-insensitive partial matching
   if (isSearching && searchName && escorts) {
     escorts = escorts.filter(escort => 
-      escort.stage_name?.toLowerCase().includes(searchName.toLowerCase())
+      escort.stage_name?.toLowerCase().includes(searchName.toLowerCase().trim())
     );
   }
 
