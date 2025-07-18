@@ -18,7 +18,7 @@ const EscortBookings = ({ escortUserId }: EscortBookingsProps) => {
         .from('bookings')
         .select(`
           *,
-          profiles!bookings_client_id_fkey(full_name)
+          profiles!client_id(full_name)
         `)
         .eq('escort_id', escortUserId)
         .order('created_at', { ascending: false });
