@@ -35,52 +35,52 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center space-x-2">
-            <Heart className="h-8 w-8 text-purple-600" />
-            <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 overflow-x-hidden">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+        <div className="flex justify-between items-center h-16 min-w-0">
+          <Link to="/" className="flex items-center space-x-2 flex-shrink-0 min-w-0">
+            <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 flex-shrink-0" />
+            <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent truncate">
               EldoVibes
             </span>
           </Link>
 
-          <div className="flex items-center space-x-4">
-            <Link to="/about">
-              <Button variant="ghost" size="sm">
-                <Info className="w-4 h-4 mr-2" />
-                About
+          <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 min-w-0">
+            <Link to="/about" className="hidden xs:block">
+              <Button variant="ghost" size="sm" className="p-1 sm:p-2">
+                <Info className="w-4 h-4 sm:mr-2 flex-shrink-0" />
+                <span className="hidden sm:inline">About</span>
               </Button>
             </Link>
 
             {user ? (
               <>
                 <Link to="/messages">
-                  <Button variant="ghost" size="sm">
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Messages
+                  <Button variant="ghost" size="sm" className="p-1 sm:p-2">
+                    <MessageCircle className="w-4 h-4 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Messages</span>
                   </Button>
                 </Link>
                 
                 <Link to="/dashboard">
-                  <Button variant="ghost" size="sm">
-                    <LayoutDashboard className="w-4 h-4 mr-2" />
-                    Dashboard
+                  <Button variant="ghost" size="sm" className="p-1 sm:p-2">
+                    <LayoutDashboard className="w-4 h-4 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden xs:inline">Dashboard</span>
                   </Button>
                 </Link>
 
                 {isAdmin && (
-                  <Link to="/admin">
-                    <Button variant="ghost" size="sm">
-                      <Shield className="w-4 h-4 mr-2" />
-                      Admin
+                  <Link to="/admin" className="hidden sm:block">
+                    <Button variant="ghost" size="sm" className="p-1 sm:p-2">
+                      <Shield className="w-4 h-4 sm:mr-2 flex-shrink-0" />
+                      <span className="hidden md:inline">Admin</span>
                     </Button>
                   </Link>
                 )}
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full flex-shrink-0">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback>
                           {user.email?.charAt(0).toUpperCase()}
@@ -97,6 +97,12 @@ const Navbar = () => {
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Settings</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem className="sm:hidden">
+                      <Link to="/about" className="flex items-center w-full">
+                        <Info className="mr-2 h-4 w-4" />
+                        <span>About</span>
+                      </Link>
+                    </DropdownMenuItem>
                     {isAdmin && (
                       <DropdownMenuItem onClick={handleAdminClick}>
                         <Shield className="mr-2 h-4 w-4" />
@@ -111,9 +117,9 @@ const Navbar = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <Link to="/auth">
-                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                  Sign In
+              <Link to="/auth" className="flex-shrink-0">
+                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-xs sm:text-sm px-2 sm:px-4">
+                  <span className="truncate">Sign In</span>
                 </Button>
               </Link>
             )}
