@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Star, MapPin, Clock, Verified, Phone } from 'lucide-react';
+import { formatCurrency } from '@/hooks/useEscorts';
 
 interface EscortCardProps {
   id: string;
@@ -62,7 +63,7 @@ const EscortCard = ({
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative">
-        <div className="h-48 bg-gradient-to-br from-purple-100 to-pink-100">
+        <div className="h-40 sm:h-48 bg-gradient-to-br from-purple-100 to-pink-100">
           {profileImageUrl ? (
             <img
               src={profileImageUrl}
@@ -71,68 +72,81 @@ const EscortCard = ({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <div className="text-6xl">👤</div>
+              <div className="text-4xl sm:text-6xl">👤</div>
             </div>
           )}
         </div>
         <div className="absolute top-2 right-2">
           <Badge variant={availabilityStatus === 'available' ? 'default' : 'secondary'} 
-                 className={`${getStatusColor(availabilityStatus)} text-white`}>
+                 className={`${getStatusColor(availabilityStatus)} text-white text-xs`}>
             <Clock className="w-3 h-3 mr-1" />
-            {getStatusText(availabilityStatus)}
+            <span className="hidden sm:inline">{getStatusText(availabilityStatus)}</span>
+            <span className="sm:hidden">{availabilityStatus === 'available' ? '●' : '○'}</span>
           </Badge>
         </div>
         {verified && (
           <div className="absolute top-2 left-2">
-            <Badge variant="default" className="bg-blue-500 text-white">
+            <Badge variant="default" className="bg-blue-500 text-white text-xs">
               <Verified className="w-3 h-3 mr-1" />
-              Verified
+              <span className="hidden sm:inline">Verified</span>
+              <span className="sm:hidden">✓</span>
             </Badge>
           </div>
         )}
       </div>
       
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <div>
-            <h3 className="font-semibold text-lg">{stageName}</h3>
-            <p className="text-sm text-gray-600">{age ? `${age} years old` : 'Age not specified'}</p>
-          </div>
-          <div className="text-right">
-            <p className="font-bold text-purple-600">${hourlyRate || 0}/hr</p>
-            <div className="flex items-center text-sm">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
-              <span>{rating.toFixed(1)} ({totalReviews})</span>
+      <CardContent className="p-3 sm:p-4">
+        <div className="space-y-3">
+          {/* Header Info */}
+          <div className="flex justify-between items-start">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-base sm:text-lg truncate">{stageName}</h3>
+              <p className="text-xs sm:text-sm text-gray-600">
+                {age ? `${age} years old` : 'Age not specified'}
+              </p>
+            </div>
+            <div className="text-right flex-shrink-0 ml-2">
+              <p className="font-bold text-purple-600 text-sm sm:text-base">
+                {formatCurrency(hourlyRate || 0)}/hr
+              </p>
+              <div className="flex items-center text-xs sm:text-sm justify-end">
+                <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400 mr-1" />
+                <span>{rating.toFixed(1)} ({totalReviews})</span>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div className="flex items-center text-sm text-gray-600 mb-3">
-          <MapPin className="w-4 h-4 mr-1" />
-          {location || 'Location not specified'}
-        </div>
-        
-        <Badge variant="outline" className="mb-3">
-          {category || 'General'}
-        </Badge>
-        
-        <div className="flex gap-2">
-          <Button 
-            onClick={() => onViewProfile(id)}
-            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-          >
-            View Profile
-          </Button>
-          {phoneNumber && (
-            <Button
-              onClick={handlePhoneCall}
-              variant="outline"
-              size="icon"
-              className="shrink-0"
+          
+          {/* Location */}
+          <div className="flex items-center text-xs sm:text-sm text-gray-600">
+            <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+            <span className="truncate">{location || 'Location not specified'}</span>
+          </div>
+          
+          {/* Category */}
+          <Badge variant="outline" className="text-xs w-fit">
+            {category || 'General'}
+          </Badge>
+          
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => onViewProfile(id)}
+              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-9 sm:h-10 text-xs sm:text-sm"
             >
-              <Phone className="w-4 h-4" />
+              View Profile
             </Button>
-          )}
+            {phoneNumber && (
+              <Button
+                onClick={handlePhoneCall}
+                variant="outline"
+                size="icon"
+                className="shrink-0 h-9 w-9 sm:h-10 sm:w-10"
+                title="Call Now"
+              >
+                <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

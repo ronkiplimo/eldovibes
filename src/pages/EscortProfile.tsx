@@ -10,6 +10,7 @@ import Navbar from '@/components/Navbar';
 import BookingModal from '@/components/BookingModal';
 import MessageModal from '@/components/MessageModal';
 import ReviewsSection from '@/components/ReviewsSection';
+import EscortBookings from '@/components/EscortBookings';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -40,7 +41,19 @@ const EscortProfile = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="animate-pulse p-8">Loading...</div>
+        <div className="animate-pulse p-4 sm:p-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-3 gap-4 sm:gap-8">
+              <div className="lg:col-span-2 space-y-4">
+                <div className="h-64 bg-gray-200 rounded-lg"></div>
+                <div className="h-32 bg-gray-200 rounded-lg"></div>
+              </div>
+              <div className="space-y-4">
+                <div className="h-48 bg-gray-200 rounded-lg"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -49,9 +62,9 @@ const EscortProfile = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="p-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-600">Profile not found</h1>
-          <Button onClick={() => navigate('/')} className="mt-4">
+        <div className="p-4 sm:p-8 text-center">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-600 mb-4">Profile not found</h1>
+          <Button onClick={() => navigate('/')} className="w-full sm:w-auto">
             Back to Home
           </Button>
         </div>
@@ -81,73 +94,85 @@ const EscortProfile = () => {
     }
   };
 
+  // Check if current user is the escort owner
+  const isEscortOwner = user?.id === escort.user_id;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8">
+        <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
           {/* Profile Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Header */}
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 {/* Profile Image */}
                 {escort.profile_image_url && (
-                  <div className="mb-6">
+                  <div className="mb-4 sm:mb-6">
                     <img
                       src={escort.profile_image_url}
                       alt={escort.stage_name}
-                      className="w-full h-64 object-cover rounded-lg"
+                      className="w-full h-48 sm:h-64 object-cover rounded-lg"
                     />
                   </div>
                 )}
                 
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h1 className="text-3xl font-bold">{escort.stage_name}</h1>
-                      {escort.verified && (
-                        <Badge className="bg-blue-500 text-white">
-                          <Verified className="w-3 h-3 mr-1" />
-                          Verified
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center text-gray-600 mb-2">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {escort.location || 'Location not specified'}
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
-                        <span className="font-medium">{escort.rating?.toFixed(1) || '0.0'}</span>
-                        <span className="text-gray-500 ml-1">({escort.total_reviews || 0} reviews)</span>
+                <div className="space-y-4">
+                  {/* Header Info - Stack on mobile */}
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                        <h1 className="text-2xl sm:text-3xl font-bold">{escort.stage_name}</h1>
+                        {escort.verified && (
+                          <Badge className="bg-blue-500 text-white w-fit">
+                            <Verified className="w-3 h-3 mr-1" />
+                            Verified
+                          </Badge>
+                        )}
                       </div>
-                      <Badge variant={escort.availability_status === 'available' ? 'default' : 'secondary'}>
-                        <Clock className="w-3 h-3 mr-1" />
-                        {escort.availability_status === 'available' ? 'Available' : 
-                         escort.availability_status === 'busy' ? 'Busy' : 'Offline'}
-                      </Badge>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center text-gray-600">
+                          <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+                          <span className="text-sm sm:text-base">{escort.location || 'Location not specified'}</span>
+                        </div>
+                        
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                          <div className="flex items-center">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
+                            <span className="font-medium text-sm sm:text-base">{escort.rating?.toFixed(1) || '0.0'}</span>
+                            <span className="text-gray-500 ml-1 text-sm">({escort.total_reviews || 0} reviews)</span>
+                          </div>
+                          <Badge variant={escort.availability_status === 'available' ? 'default' : 'secondary'} className="w-fit">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {escort.availability_status === 'available' ? 'Available' : 
+                             escort.availability_status === 'busy' ? 'Busy' : 'Offline'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Price and Age - Right aligned on desktop, separate section on mobile */}
+                    <div className="sm:text-right">
+                      <p className="text-2xl sm:text-3xl font-bold text-purple-600">
+                        {formatCurrency(escort.hourly_rate || 0)}/hr
+                      </p>
+                      <p className="text-sm text-gray-500">{escort.age} years old</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-bold text-purple-600">
-                      {formatCurrency(escort.hourly_rate || 0)}/hr
-                    </p>
-                    <p className="text-sm text-gray-500">{escort.age} years old</p>
-                  </div>
+                  
+                  {escort.bio && (
+                    <>
+                      <Separator className="my-4" />
+                      <div>
+                        <h3 className="font-semibold mb-2">About</h3>
+                        <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{escort.bio}</p>
+                      </div>
+                    </>
+                  )}
                 </div>
-                
-                {escort.bio && (
-                  <>
-                    <Separator className="my-4" />
-                    <div>
-                      <h3 className="font-semibold mb-2">About</h3>
-                      <p className="text-gray-700 leading-relaxed">{escort.bio}</p>
-                    </div>
-                  </>
-                )}
               </CardContent>
             </Card>
 
@@ -155,12 +180,12 @@ const EscortProfile = () => {
             {escort.services_offered && escort.services_offered.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Services Offered</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">Services Offered</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {escort.services_offered.map((service, index) => (
-                      <Badge key={index} variant="outline">
+                      <Badge key={index} variant="outline" className="text-xs sm:text-sm">
                         {service}
                       </Badge>
                     ))}
@@ -169,21 +194,26 @@ const EscortProfile = () => {
               </Card>
             )}
 
+            {/* Bookings - Only show to escort owner */}
+            {isEscortOwner && (
+              <EscortBookings escortUserId={escort.user_id} />
+            )}
+
             {/* Reviews */}
             <ReviewsSection escortId={escort.id} />
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Contact & Booking Card */}
             <Card>
               <CardHeader>
-                <CardTitle>Contact & Book</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Contact & Book</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
                 <Button 
                   onClick={handleBookNow}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-11 sm:h-12 text-sm sm:text-base"
                   disabled={escort.availability_status !== 'available'}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
@@ -193,7 +223,7 @@ const EscortProfile = () => {
                 <Button 
                   onClick={handleMessage}
                   variant="outline"
-                  className="w-full"
+                  className="w-full h-11 sm:h-12 text-sm sm:text-base"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Send Message
@@ -203,7 +233,7 @@ const EscortProfile = () => {
                   <Button 
                     onClick={handlePhoneCall}
                     variant="outline"
-                    className="w-full"
+                    className="w-full h-11 sm:h-12 text-sm sm:text-base"
                   >
                     <Phone className="w-4 h-4 mr-2" />
                     Call Now
@@ -228,7 +258,7 @@ const EscortProfile = () => {
             {/* Category */}
             <Card>
               <CardHeader>
-                <CardTitle>Category</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Category</CardTitle>
               </CardHeader>
               <CardContent>
                 <Badge variant="secondary" className="text-sm">

@@ -22,10 +22,8 @@ const EscortListings = ({ escorts, isLoading }: EscortListingsProps) => {
 
   const handlePhoneCall = async (escortId: string) => {
     try {
-      // Fetch the escort's full profile to get phone number
       const escort = escorts.find(e => e.id === escortId);
       if (escort?.phone_number) {
-        // Open phone app with the number
         window.location.href = `tel:${escort.phone_number}`;
       } else {
         console.log('Phone number not available');
@@ -40,7 +38,6 @@ const EscortListings = ({ escorts, isLoading }: EscortListingsProps) => {
       navigate('/auth');
       return;
     }
-    // Navigate to messages with the escort selected
     navigate(`/messages?recipient=${escortUserId}&name=${encodeURIComponent(escortName)}`);
   };
 
@@ -64,11 +61,11 @@ const EscortListings = ({ escorts, isLoading }: EscortListingsProps) => {
 
   if (isLoading) {
     return (
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <Card key={i} className="animate-pulse">
-            <div className="h-48 bg-gray-200"></div>
-            <CardContent className="p-4">
+            <div className="h-40 sm:h-48 bg-gray-200"></div>
+            <CardContent className="p-3 sm:p-4">
               <div className="h-4 bg-gray-200 rounded mb-2"></div>
               <div className="h-4 bg-gray-200 rounded w-2/3"></div>
             </CardContent>
@@ -81,10 +78,10 @@ const EscortListings = ({ escorts, isLoading }: EscortListingsProps) => {
   if (!escorts || escorts.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-xl font-semibold text-gray-600 mb-2">
+        <div className="text-lg sm:text-xl font-semibold text-gray-600 mb-2">
           No companions available
         </div>
-        <p className="text-gray-500">
+        <p className="text-sm sm:text-base text-gray-500">
           Check back soon for amazing companions in your area
         </p>
       </div>
@@ -92,11 +89,11 @@ const EscortListings = ({ escorts, isLoading }: EscortListingsProps) => {
   }
 
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
       {escorts.map((escort) => (
         <Card key={escort.id} className="overflow-hidden hover:shadow-lg transition-shadow">
           <div className="relative">
-            <div className="h-48 bg-gradient-to-br from-purple-100 to-pink-100">
+            <div className="h-40 sm:h-48 bg-gradient-to-br from-purple-100 to-pink-100">
               {escort.profile_image_url ? (
                 <img
                   src={escort.profile_image_url}
@@ -105,78 +102,90 @@ const EscortListings = ({ escorts, isLoading }: EscortListingsProps) => {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-6xl">👤</div>
+                  <div className="text-4xl sm:text-6xl">👤</div>
                 </div>
               )}
             </div>
             <div className="absolute top-2 right-2">
               <Badge variant={escort.availability_status === 'available' ? 'default' : 'secondary'} 
-                     className={`${getStatusColor(escort.availability_status)} text-white`}>
+                     className={`${getStatusColor(escort.availability_status)} text-white text-xs`}>
                 <Clock className="w-3 h-3 mr-1" />
-                {getStatusText(escort.availability_status)}
+                <span className="hidden sm:inline">{getStatusText(escort.availability_status)}</span>
+                <span className="sm:hidden">{escort.availability_status === 'available' ? '●' : '○'}</span>
               </Badge>
             </div>
             {escort.verified && (
               <div className="absolute top-2 left-2">
-                <Badge variant="default" className="bg-blue-500 text-white">
+                <Badge variant="default" className="bg-blue-500 text-white text-xs">
                   <Verified className="w-3 h-3 mr-1" />
-                  Verified
+                  <span className="hidden sm:inline">Verified</span>
+                  <span className="sm:hidden">✓</span>
                 </Badge>
               </div>
             )}
           </div>
           
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <h3 className="font-semibold text-lg">{escort.stage_name}</h3>
-                <p className="text-sm text-gray-600">{escort.age ? `${escort.age} years old` : 'Age not specified'}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-purple-600">{formatCurrency(escort.hourly_rate || 0)}/hr</p>
-                <div className="flex items-center text-sm">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
-                  <span>{escort.rating?.toFixed(1) || '0.0'} ({escort.total_reviews || 0})</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="space-y-3">
+              {/* Header Info */}
+              <div className="flex justify-between items-start">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-base sm:text-lg truncate">{escort.stage_name}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    {escort.age ? `${escort.age} years old` : 'Age not specified'}
+                  </p>
+                </div>
+                <div className="text-right flex-shrink-0 ml-2">
+                  <p className="font-bold text-purple-600 text-sm sm:text-base">
+                    {formatCurrency(escort.hourly_rate || 0)}/hr
+                  </p>
+                  <div className="flex items-center text-xs sm:text-sm justify-end">
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400 mr-1" />
+                    <span>{escort.rating?.toFixed(1) || '0.0'} ({escort.total_reviews || 0})</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="flex items-center text-sm text-gray-600 mb-3">
-              <MapPin className="w-4 h-4 mr-1" />
-              {escort.location || 'Location not specified'}
-            </div>
-            
-            <Badge variant="outline" className="mb-3">
-              {escort.category || 'General'}
-            </Badge>
-            
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => handleViewProfile(escort.id)}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-              >
-                View Profile
-              </Button>
-              {escort.phone_number && (
+              
+              {/* Location */}
+              <div className="flex items-center text-xs sm:text-sm text-gray-600">
+                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+                <span className="truncate">{escort.location || 'Location not specified'}</span>
+              </div>
+              
+              {/* Category */}
+              <Badge variant="outline" className="text-xs w-fit">
+                {escort.category || 'General'}
+              </Badge>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => handleViewProfile(escort.id)}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-9 sm:h-10 text-xs sm:text-sm"
+                >
+                  View Profile
+                </Button>
+                {escort.phone_number && (
+                  <Button
+                    onClick={() => handlePhoneCall(escort.id)}
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 h-9 w-9 sm:h-10 sm:w-10"
+                    title="Call Now"
+                  >
+                    <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
+                  </Button>
+                )}
                 <Button
-                  onClick={() => handlePhoneCall(escort.id)}
+                  onClick={() => handleMessage(escort.user_id, escort.stage_name)}
                   variant="outline"
                   size="icon"
-                  className="shrink-0"
-                  title="Call Now"
+                  className="shrink-0 h-9 w-9 sm:h-10 sm:w-10"
+                  title="Send Message"
                 >
-                  <Phone className="w-4 h-4" />
+                  <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
-              )}
-              <Button
-                onClick={() => handleMessage(escort.user_id, escort.stage_name)}
-                variant="outline"
-                size="icon"
-                className="shrink-0"
-                title="Send Message"
-              >
-                <MessageCircle className="w-4 h-4" />
-              </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

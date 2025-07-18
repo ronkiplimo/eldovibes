@@ -10,6 +10,7 @@ import { Calendar, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { formatCurrency } from '@/hooks/useEscorts';
 
 interface BookingModalProps {
   escort: any;
@@ -62,27 +63,27 @@ const BookingModal = ({ escort, onClose }: BookingModalProps) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            Book {escort.stage_name}
+      <Card className="w-full max-w-md max-h-[95vh] overflow-y-auto">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="truncate">Book {escort.stage_name}</span>
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose} className="flex-shrink-0">
             <X className="w-4 h-4" />
           </Button>
         </CardHeader>
         
-        <CardContent>
+        <CardContent className="pt-0">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="service_type">Service Type *</Label>
+              <Label htmlFor="service_type" className="text-sm font-medium">Service Type *</Label>
               <Select 
                 value={formData.service_type} 
                 onValueChange={(value) => setFormData(prev => ({ ...prev, service_type: value }))}
                 required
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select service type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -96,7 +97,7 @@ const BookingModal = ({ escort, onClose }: BookingModalProps) => {
             </div>
 
             <div>
-              <Label htmlFor="booking_date">Date & Time *</Label>
+              <Label htmlFor="booking_date" className="text-sm font-medium">Date & Time *</Label>
               <Input
                 id="booking_date"
                 type="datetime-local"
@@ -104,16 +105,17 @@ const BookingModal = ({ escort, onClose }: BookingModalProps) => {
                 onChange={(e) => setFormData(prev => ({ ...prev, booking_date: e.target.value }))}
                 required
                 min={new Date().toISOString().slice(0, 16)}
+                className="h-11"
               />
             </div>
 
             <div>
-              <Label htmlFor="duration_hours">Duration (hours) *</Label>
+              <Label htmlFor="duration_hours" className="text-sm font-medium">Duration (hours) *</Label>
               <Select 
                 value={formData.duration_hours.toString()} 
                 onValueChange={(value) => setFormData(prev => ({ ...prev, duration_hours: parseInt(value) }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -127,33 +129,41 @@ const BookingModal = ({ escort, onClose }: BookingModalProps) => {
             </div>
 
             <div>
-              <Label htmlFor="special_requests">Special Requests</Label>
+              <Label htmlFor="special_requests" className="text-sm font-medium">Special Requests</Label>
               <Textarea
                 id="special_requests"
                 placeholder="Any special requests or notes..."
                 value={formData.special_requests}
                 onChange={(e) => setFormData(prev => ({ ...prev, special_requests: e.target.value }))}
+                className="min-h-[80px] resize-none"
               />
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Total Amount:</span>
-                <span className="text-2xl font-bold text-purple-600">${totalAmount}</span>
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-medium text-sm sm:text-base">Total Amount:</span>
+                <span className="text-xl sm:text-2xl font-bold text-purple-600">
+                  {formatCurrency(totalAmount)}
+                </span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">
-                {formData.duration_hours} hour{formData.duration_hours > 1 ? 's' : ''} × ${escort.hourly_rate}/hr
+              <p className="text-xs sm:text-sm text-gray-600">
+                {formData.duration_hours} hour{formData.duration_hours > 1 ? 's' : ''} × {formatCurrency(escort.hourly_rate)}/hr
               </p>
             </div>
 
-            <div className="flex gap-3">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose} 
+                className="flex-1 h-11"
+              >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
                 disabled={loading || !formData.service_type || !formData.booking_date}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-11"
               >
                 {loading ? 'Booking...' : 'Book Now'}
               </Button>
