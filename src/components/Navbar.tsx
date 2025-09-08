@@ -35,8 +35,8 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <div className="flex justify-between items-center h-16 min-w-0">
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0 min-w-0">
-            <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 flex-shrink-0" />
-            <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent truncate">
+            <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-red-600 flex-shrink-0" />
+            <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent truncate">
               EldoVibes
             </span>
           </Link>
@@ -104,7 +104,7 @@ const Navbar = () => {
               </>
             ) : (
               <Link to="/auth" className="flex-shrink-0">
-                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-xs sm:text-sm px-2 sm:px-4">
+                <Button className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-xs sm:text-sm px-2 sm:px-4">
                   <span className="truncate">Sign In</span>
                 </Button>
               </Link>

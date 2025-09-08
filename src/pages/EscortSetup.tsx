@@ -235,7 +235,7 @@ const EscortSetup = () => {
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading your profile...</p>
           </div>
         </div>
@@ -479,7 +479,7 @@ const EscortSetup = () => {
             <Button
               onClick={handleSubmit}
               disabled={createOrUpdateProfileMutation.isPending || !isFormValid()}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600"
             >
               {createOrUpdateProfileMutation.isPending 
                 ? (isEditing ? 'Updating Profile...' : 'Saving Profile...') 

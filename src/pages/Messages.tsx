@@ -233,7 +233,7 @@ const Messages = () => {
                   key={conversation.userId}
                   onClick={() => setSelectedConversation(conversation.userId)}
                   className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
-                    selectedConversation === conversation.userId ? 'bg-purple-50' : ''
+                    selectedConversation === conversation.userId ? 'bg-red-50' : ''
                   }`}
                 >
                   <div className="flex justify-between items-start">
@@ -244,7 +244,7 @@ const Messages = () => {
                       </p>
                     </div>
                     {conversation.unreadCount > 0 && (
-                      <span className="bg-purple-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      <span className="bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                         {conversation.unreadCount}
                       </span>
                     )}
@@ -276,13 +276,13 @@ const Messages = () => {
                       <div
                         className={`max-w-xs px-4 py-2 rounded-lg ${
                           message.sender_id === user.id
-                            ? 'bg-purple-600 text-white'
+                            ? 'bg-red-600 text-white'
                             : 'bg-gray-200 text-gray-800'
                         }`}
                       >
                         <p>{message.content}</p>
                         <p className={`text-xs mt-1 ${
-                          message.sender_id === user.id ? 'text-purple-200' : 'text-gray-500'
+                          message.sender_id === user.id ? 'text-red-200' : 'text-gray-500'
                         }`}>
                           {new Date(message.created_at).toLocaleTimeString()}
                         </p>

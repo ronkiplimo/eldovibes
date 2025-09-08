@@ -84,12 +84,12 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
         </CardHeader>
         
         <CardContent className="space-y-6">
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <p className="text-sm text-purple-800 mb-2">
+          <div className="bg-red-50 p-4 rounded-lg">
+            <p className="text-sm text-red-800 mb-2">
               <strong>Explore a wide range of high-class escort services</strong> designed to suit every desire, fantasy, and mood. 
               Our companions offer personalized experiences, from sensual relaxation to adventurous encounters.
             </p>
-            <p className="text-xs text-purple-600">
+            <p className="text-xs text-red-600">
               🚨 <strong>Note:</strong> All services are offered at the discretion of the individual escort and may vary. 
               Please respect boundaries and confirm availability in advance. Safety and consent are our top priorities.
             </p>
@@ -216,7 +216,7 @@ const AdvancedSearch = ({ onSearch, onClose }: AdvancedSearchProps) => {
             <Button variant="outline" onClick={resetFilters} className="flex-1">
               Reset
             </Button>
-            <Button onClick={handleSearch} className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+            <Button onClick={handleSearch} className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600">
               Apply Filters
             </Button>
           </div>

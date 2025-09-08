@@ -200,7 +200,7 @@ const MembershipUpgrade = () => {
             {escortProfile && (
               <div className="pt-4 border-t">
                 <div className="flex items-center gap-2 mb-2">
-                  <Heart className="w-4 h-4 text-purple-600" />
+                  <Heart className="w-4 h-4 text-red-600" />
                   <span className="font-medium text-sm">Escort Profile Status</span>
                 </div>
                 <Badge variant="outline" className="bg-green-50 text-green-700">
@@ -217,7 +217,7 @@ const MembershipUpgrade = () => {
             
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <Heart className="w-4 h-4 text-purple-600" />
+                <Heart className="w-4 h-4 text-red-600" />
                 <h4 className="font-medium">Activate Your Escort Profile</h4>
               </div>
               

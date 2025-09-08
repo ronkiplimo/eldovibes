@@ -129,7 +129,7 @@ const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: ImageUpl
       ) : (
         <Card
           className={`border-2 border-dashed transition-colors ${
-            dragOver ? 'border-purple-500 bg-purple-50' : 'border-gray-300'
+            dragOver ? 'border-red-500 bg-red-50' : 'border-gray-300'
           }`}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -147,7 +147,7 @@ const ImageUpload = ({ currentImageUrl, onImageUpload, onImageRemove }: ImageUpl
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 {uploading ? 'Uploading...' : 'Choose Image'}

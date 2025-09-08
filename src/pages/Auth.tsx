@@ -139,17 +139,17 @@ const Auth = () => {
 
   if (showEmailSent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-25 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <Heart className="h-8 w-8 text-purple-600" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <Heart className="h-8 w-8 text-red-600" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
                 EldoVibes
               </span>
             </div>
             <CardTitle className="flex items-center justify-center gap-2">
-              <Mail className="h-6 w-6 text-purple-600" />
+              <Mail className="h-6 w-6 text-red-600" />
               Check Your Email
             </CardTitle>
             <CardDescription>We've sent you a verification link</CardDescription>
@@ -187,7 +187,7 @@ const Auth = () => {
             
             <Button
               variant="link"
-              className="w-full text-purple-600 hover:text-purple-700"
+              className="w-full text-red-600 hover:text-red-700"
               onClick={() => navigate('/')}
             >
               <Home className="w-4 h-4 mr-2" />
@@ -201,12 +201,12 @@ const Auth = () => {
 
   if (showForgotPassword) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-25 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <Heart className="h-8 w-8 text-purple-600" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <Heart className="h-8 w-8 text-red-600" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
                 EldoVibes
               </span>
             </div>
@@ -227,7 +227,7 @@ const Auth = () => {
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600"
                 disabled={loading}
               >
                 {loading ? 'Sending...' : 'Send Reset Email'}
@@ -260,12 +260,12 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-25 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Heart className="h-8 w-8 text-purple-600" />
-            <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <Heart className="h-8 w-8 text-red-600" />
+            <span className="text-2xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
               EldoVibes
             </span>
           </div>
@@ -315,7 +315,7 @@ const Auth = () => {
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600"
                   disabled={loading}
                 >
                   {loading ? 'Signing in...' : 'Sign In'}
@@ -323,7 +323,7 @@ const Auth = () => {
                 <Button
                   type="button"
                   variant="link"
-                  className="w-full text-purple-600 hover:text-purple-700"
+                  className="w-full text-red-600 hover:text-red-700"
                   onClick={() => setShowForgotPassword(true)}
                 >
                   Forgot your password?
@@ -387,7 +387,7 @@ const Auth = () => {
                     <button
                       type="button"
                       onClick={() => navigate('/terms')}
-                      className="text-purple-600 hover:text-purple-700 underline"
+                      className="text-red-600 hover:text-red-700 underline"
                     >
                       Terms of Service
                     </button>
@@ -396,7 +396,7 @@ const Auth = () => {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600"
                   disabled={loading || !acceptedTerms}
                 >
                   {loading ? 'Creating account...' : 'Sign Up'}

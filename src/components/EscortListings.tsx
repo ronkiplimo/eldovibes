@@ -93,7 +93,7 @@ const EscortListings = ({ escorts, isLoading }: EscortListingsProps) => {
       {escorts.map((escort) => (
         <Card key={escort.id} className="overflow-hidden hover:shadow-lg transition-shadow">
           <div className="relative">
-            <div className="h-40 sm:h-48 bg-gradient-to-br from-purple-100 to-pink-100">
+            <div className="h-40 sm:h-48 bg-gradient-to-br from-red-100 to-red-50">
               {escort.profile_image_url ? (
                 <img
                   src={escort.profile_image_url}
@@ -136,7 +136,7 @@ const EscortListings = ({ escorts, isLoading }: EscortListingsProps) => {
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0 ml-2">
-                  <p className="font-bold text-purple-600 text-sm sm:text-base">
+                  <p className="font-bold text-red-600 text-sm sm:text-base">
                     {formatCurrency(escort.hourly_rate || 0)}/hr
                   </p>
                   <div className="flex items-center text-xs sm:text-sm justify-end">
@@ -161,7 +161,7 @@ const EscortListings = ({ escorts, isLoading }: EscortListingsProps) => {
               <div className="flex gap-2">
                 <Button 
                   onClick={() => handleViewProfile(escort.id)}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-9 sm:h-10 text-xs sm:text-sm"
+                  className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 h-9 sm:h-10 text-xs sm:text-sm"
                 >
                   View Profile
                 </Button>

@@ -142,7 +142,7 @@ const BookingModal = ({ escort, onClose }: BookingModalProps) => {
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex justify-between items-center mb-1">
                 <span className="font-medium text-sm sm:text-base">Total Amount:</span>
-                <span className="text-xl sm:text-2xl font-bold text-purple-600">
+                <span className="text-xl sm:text-2xl font-bold text-red-600">
                   {formatCurrency(totalAmount)}
                 </span>
               </div>
@@ -163,7 +163,7 @@ const BookingModal = ({ escort, onClose }: BookingModalProps) => {
               <Button 
                 type="submit" 
                 disabled={loading || !formData.service_type || !formData.booking_date}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-11"
+                className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 h-11"
               >
                 {loading ? 'Booking...' : 'Book Now'}
               </Button>

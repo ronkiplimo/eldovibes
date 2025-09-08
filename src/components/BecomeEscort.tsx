@@ -181,7 +181,7 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Heart className="w-5 h-5 text-purple-600" />
+          <Heart className="w-5 h-5 text-red-600" />
           {hasProfile ? 'Escort Profile' : 'Become an Escort'}
         </CardTitle>
       </CardHeader>
@@ -198,7 +198,7 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
         {!isPaidMember ? (
           <Button 
             onClick={() => navigate('/membership')}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600"
           >
             <CreditCard className="w-4 h-4 mr-2" />
             Upgrade to Premium - KES 800/month
@@ -207,7 +207,7 @@ const BecomeEscort = ({ escortProfile }: BecomeEscortProps) => {
           <Button 
             onClick={handleProfileAction}
             disabled={isCreating || createEscortProfileMutation.isPending}
-            className={`w-full ${hasProfile ? '' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'}`}
+            className={`w-full ${hasProfile ? '' : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600'}`}
             variant={hasProfile ? "outline" : "default"}
           >
             {isCreating || createEscortProfileMutation.isPending ? (

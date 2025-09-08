@@ -10,8 +10,8 @@ const Footer = () => {
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <Link to="/" className="flex items-center space-x-2 mb-4">
-              <Heart className="h-8 w-8 text-purple-400" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <Heart className="h-8 w-8 text-red-400" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-red-500 to-red-400 bg-clip-text text-transparent">
                 EldoVibes
               </span>
             </Link>
@@ -26,7 +26,7 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
-                <Mail className="h-5 w-5 text-purple-400" />
+                <Mail className="h-5 w-5 text-red-400" />
                 <a 
                   href="mailto:eldovibes@gmail.com" 
                   className="text-gray-300 hover:text-white transition-colors"
@@ -35,7 +35,7 @@ const Footer = () => {
                 </a>
               </div>
               <div className="flex items-center space-x-3">
-                <Phone className="h-5 w-5 text-purple-400" />
+                <Phone className="h-5 w-5 text-red-400" />
                 <a 
                   href="tel:+254716491128" 
                   className="text-gray-300 hover:text-white transition-colors"
@@ -65,7 +65,7 @@ const Footer = () => {
                 rel="noopener noreferrer"
                 className="flex items-center space-x-3 text-gray-300 hover:text-white transition-colors"
               >
-                <Instagram className="h-5 w-5 text-pink-400" />
+                <Instagram className="h-5 w-5 text-red-400" />
                 <span>Instagram</span>
               </a>
               <a 

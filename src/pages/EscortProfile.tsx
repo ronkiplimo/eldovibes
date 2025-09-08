@@ -156,7 +156,7 @@ const EscortProfile = () => {
                     
                     {/* Price and Age - Right aligned on desktop, separate section on mobile */}
                     <div className="sm:text-right">
-                      <p className="text-2xl sm:text-3xl font-bold text-purple-600">
+                      <p className="text-2xl sm:text-3xl font-bold text-red-600">
                         {formatCurrency(escort.hourly_rate || 0)}/hr
                       </p>
                       <p className="text-sm text-gray-500">{escort.age} years old</p>
@@ -213,7 +213,7 @@ const EscortProfile = () => {
               <CardContent className="space-y-3 sm:space-y-4">
                 <Button 
                   onClick={handleBookNow}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-11 sm:h-12 text-sm sm:text-base"
+                  className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 h-11 sm:h-12 text-sm sm:text-base"
                   disabled={escort.availability_status !== 'available'}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
@@ -245,7 +245,7 @@ const EscortProfile = () => {
                     <p>
                       <button 
                         onClick={() => navigate('/auth')} 
-                        className="text-purple-600 hover:underline"
+                        className="text-red-600 hover:underline"
                       >
                         Login
                       </button> to send messages and book appointments

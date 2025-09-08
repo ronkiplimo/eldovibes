@@ -46,13 +46,13 @@ const AdminDashboard = () => {
       title: 'Total Escorts',
       value: stats?.totalEscorts || 0,
       icon: Heart,
-      color: 'text-purple-600'
+      color: 'text-red-600'
     },
     {
       title: 'Active Escorts',
       value: stats?.activeEscorts || 0,
       icon: Heart,
-      color: 'text-pink-600'
+      color: 'text-red-500'
     },
     {
       title: 'Total Bookings',
@@ -106,8 +106,8 @@ const AdminDashboard = () => {
                     {stats?.activeUsers || 0} active users out of {stats?.totalUsers || 0} total
                   </p>
                 </div>
-                <div className="p-3 bg-purple-50 rounded-lg">
-                  <p className="text-sm font-medium text-purple-800">
+                <div className="p-3 bg-red-50 rounded-lg">
+                  <p className="text-sm font-medium text-red-800">
                     {stats?.activeEscorts || 0} active escort profiles
                   </p>
                 </div>

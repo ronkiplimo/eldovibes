@@ -242,7 +242,7 @@ const EldoVibesAssistant = () => {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg z-50 animate-pulse"
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 shadow-lg z-50 animate-pulse"
         size="icon"
       >
         <MessageCircle className="h-6 w-6" />
@@ -252,7 +252,7 @@ const EldoVibesAssistant = () => {
 
   return (
     <Card className="fixed bottom-6 right-6 w-96 h-[500px] shadow-xl z-50 flex flex-col">
-      <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
+      <CardHeader className="bg-gradient-to-r from-red-600 to-red-500 text-white rounded-t-lg">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5" />
@@ -283,12 +283,12 @@ const EldoVibesAssistant = () => {
                 <div
                   className={`max-w-[85%] rounded-lg p-3 ${
                     message.isUser
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                      ? 'bg-gradient-to-r from-red-600 to-red-500 text-white'
                       : 'bg-gray-100 text-gray-900 border'
                   }`}
                 >
                   <div className="flex items-start gap-2">
-                    {!message.isUser && <Bot className="h-4 w-4 mt-1 flex-shrink-0 text-purple-600" />}
+                    {!message.isUser && <Bot className="h-4 w-4 mt-1 flex-shrink-0 text-red-600" />}
                     {message.isUser && <User className="h-4 w-4 mt-1 flex-shrink-0" />}
                     <div className="text-sm leading-relaxed">{message.content}</div>
                   </div>
@@ -299,11 +299,11 @@ const EldoVibesAssistant = () => {
               <div className="flex justify-start">
                 <div className="bg-gray-100 rounded-lg p-3 max-w-[85%] border">
                   <div className="flex items-center gap-2">
-                    <Bot className="h-4 w-4 text-purple-600" />
+                    <Bot className="h-4 w-4 text-red-600" />
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-red-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
                     <span className="text-xs text-gray-500">AI is thinking...</span>
                   </div>
@@ -327,7 +327,7 @@ const EldoVibesAssistant = () => {
               onClick={handleSendMessage}
               disabled={isLoading || !inputMessage.trim()}
               size="icon"
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600"
             >
               <Send className="h-4 w-4" />
             </Button>

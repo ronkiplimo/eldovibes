@@ -194,8 +194,8 @@ const Dashboard = () => {
                       <div className="text-sm text-gray-600">Reviews</div>
                     </div>
                     
-                    <div className="text-center p-4 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">0</div>
+                    <div className="text-center p-4 bg-red-50 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">0</div>
                       <div className="text-sm text-gray-600">This Month</div>
                     </div>
 
@@ -232,8 +232,8 @@ const Dashboard = () => {
                     <div className="text-sm text-gray-600">Messages</div>
                   </div>
                   
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">0</div>
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <div className="text-2xl font-bold text-red-600">0</div>
                     <div className="text-sm text-gray-600">Bookings</div>
                   </div>
                 </div>
@@ -281,7 +281,7 @@ const Dashboard = () => {
                       {!escortProfile.verified && membership?.status !== 'paid' && (
                         <Button 
                           onClick={handleUpgradeMembership}
-                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                          className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600"
                         >
                           Complete Payment
                         </Button>

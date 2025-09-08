@@ -27,7 +27,7 @@ const ActivityLogs = () => {
       case 'user_action':
         return 'bg-blue-500';
       case 'escort_action':
-        return 'bg-purple-500';
+        return 'bg-red-500';
       case 'booking_action':
         return 'bg-green-500';
       case 'settings_change':

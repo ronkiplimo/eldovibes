@@ -80,7 +80,7 @@ const EmailConfirmation = () => {
               </p>
               <Button 
                 onClick={handleSignIn}
-                className="w-full bg-purple-600 hover:bg-purple-700"
+                className="w-full bg-red-600 hover:bg-red-700"
               >
                 Continue to Sign In
                 <ArrowRight className="w-4 h-4 ml-2" />

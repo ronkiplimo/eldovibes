@@ -50,7 +50,7 @@ const NotFound = () => {
           </p>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-purple-600 h-2 rounded-full transition-all duration-1000"
+              className="bg-red-600 h-2 rounded-full transition-all duration-1000"
               style={{ width: `${(10 - countdown) * 10}%` }}
             ></div>
           </div>
@@ -59,7 +59,7 @@ const NotFound = () => {
         <div className="space-y-3">
           <Button
             onClick={() => navigate('/')}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600"
           >
             <Home className="w-4 h-4 mr-2" />
             Go to Home Now

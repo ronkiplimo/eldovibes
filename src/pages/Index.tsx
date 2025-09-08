@@ -76,7 +76,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <Navbar />
       
-      <section className="bg-gradient-to-br from-purple-600 to-pink-600 text-white py-8 md:py-20 overflow-x-hidden">
+      <section className="bg-gradient-to-br from-red-600 to-red-500 text-white py-8 md:py-20 overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-4 md:mb-6 break-words">
             Welcome to EldoVibes
@@ -126,7 +126,7 @@ const Index = () => {
                 <div className="flex flex-col sm:flex-row gap-2 md:gap-2 w-full">
                   <Button 
                     onClick={handleSearch}
-                    className="bg-white text-purple-600 hover:bg-gray-100 h-12 text-base flex-1 min-w-0"
+                    className="bg-white text-red-600 hover:bg-gray-100 h-12 text-base flex-1 min-w-0"
                     disabled={isLoading}
                   >
                     <Search className="w-4 h-4 mr-2 flex-shrink-0" />
@@ -148,7 +148,7 @@ const Index = () => {
           <div className="mt-6 md:mt-8 px-4">
             <Button 
               onClick={handleBecomeEscort}
-              className="bg-white text-purple-600 hover:bg-gray-100 text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-3 w-full sm:w-auto max-w-full break-words"
+              className="bg-white text-red-600 hover:bg-gray-100 text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-3 w-full sm:w-auto max-w-full break-words"
             >
               <span className="block sm:inline">Become an Escort - Start Earning Today</span>
             </Button>

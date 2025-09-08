@@ -18,7 +18,7 @@ const MembershipGuard = ({ children, fallback }: MembershipGuardProps) => {
     return (
       <Card className="max-w-md mx-auto">
         <CardContent className="flex items-center justify-center p-6">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600"></div>
         </CardContent>
       </Card>
     );
@@ -60,8 +60,8 @@ const MembershipGuard = ({ children, fallback }: MembershipGuardProps) => {
                   </ul>
                 </div>
                 
-                <div className="p-4 border-2 border-purple-200 rounded-lg bg-purple-50">
-                  <Badge className="mb-2 bg-purple-600">Premium Member</Badge>
+                <div className="p-4 border-2 border-red-200 rounded-lg bg-red-50">
+                  <Badge className="mb-2 bg-red-600">Premium Member</Badge>
                   <ul className="text-sm space-y-1">
                     <li>✓ All free features</li>
                     <li>✓ Create escort profiles</li>
